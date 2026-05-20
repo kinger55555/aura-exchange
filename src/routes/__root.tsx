@@ -75,14 +75,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "comunist time" },
+      { name: "description", content: "Aura Exchange is a web app for a social appreciation platform where users reward each other with virtual currency." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "comunist time" },
+      { property: "og:description", content: "Aura Exchange is a web app for a social appreciation platform where users reward each other with virtual currency." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "comunist time" },
+      { name: "twitter:description", content: "Aura Exchange is a web app for a social appreciation platform where users reward each other with virtual currency." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e57ccb5-2871-4a89-97e7-85b2b96d4590/id-preview-0cfaf64b--a945f182-4e24-47ed-91d9-f5c12a371ebc.lovable.app-1779291380919.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e57ccb5-2871-4a89-97e7-85b2b96d4590/id-preview-0cfaf64b--a945f182-4e24-47ed-91d9-f5c12a371ebc.lovable.app-1779291380919.png" },
     ],
     links: [
       {
