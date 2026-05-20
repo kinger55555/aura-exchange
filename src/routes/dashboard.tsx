@@ -143,13 +143,20 @@ function Dashboard() {
             <span className="text-secondary text-3xl">★</span>
             <span className="font-display text-2xl uppercase tracking-wider">Absolute Communism</span>
           </div>
-          <Button
-            onClick={signOut}
-            variant="ghost"
-            className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs"
-          >
-            Desert
-          </Button>
+          <nav className="flex items-center gap-2">
+            <Link to="/leaderboard">
+              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
+                Leaderboard
+              </Button>
+            </Link>
+            <Button
+              onClick={signOut}
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs"
+            >
+              Desert
+            </Button>
+          </nav>
         </div>
       </header>
 
