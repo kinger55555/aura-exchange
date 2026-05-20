@@ -14,13 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          aura_balance: number
+          created_at: string
+          id: string
+          nickname: string | null
+        }
+        Insert: {
+          aura_balance?: number
+          created_at?: string
+          id: string
+          nickname?: string | null
+        }
+        Update: {
+          aura_balance?: number
+          created_at?: string
+          id?: string
+          nickname?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount_received: number
+          amount_sent: number
+          created_at: string
+          id: string
+          message: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          amount_received: number
+          amount_sent: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          amount_received?: number
+          amount_sent?: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      send_aura: {
+        Args: { p_amount: number; p_message?: string; p_recipient: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_nickname: {
+        Args: { p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
