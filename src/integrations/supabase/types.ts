@@ -85,6 +85,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      report_comrade: {
+        Args: { p_amount: number; p_reason?: string; p_recipient: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       send_aura: {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
         Returns: {
