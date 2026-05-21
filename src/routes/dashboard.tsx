@@ -52,6 +52,7 @@ function Dashboard() {
   const [reportAmount, setReportAmount] = useState<number>(1);
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
+  const [sentLast24h, setSentLast24h] = useState<number>(0);
 
   // Auth gate
   useEffect(() => {
@@ -76,6 +77,18 @@ function Dashboard() {
     if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance) });
   }
 
+  async function loadQuota() {
+    if (!user) return;
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from("transactions")
+      .select("amount_sent")
+      .eq("sender_id", user.id)
+      .gte("created_at", since);
+    const sum = (data ?? []).reduce((acc, r: any) => acc + Number(r.amount_sent), 0);
+    setSentLast24h(sum);
+  }
+
   async function loadLedger() {
     const { data } = await supabase
       .from("transactions")
@@ -91,12 +104,14 @@ function Dashboard() {
     if (!user) return;
     loadProfile();
     loadLedger();
+    loadQuota();
 
     const ch = supabase
       .channel("ledger")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "transactions" }, () => {
         loadLedger();
         loadProfile();
+        loadQuota();
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, () => {
         loadProfile();
@@ -126,6 +141,7 @@ function Dashboard() {
       setStarKey((k) => k + 1);
       loadProfile();
       loadLedger();
+      loadQuota();
     } catch (err: any) {
       toast.error(err.message ?? "The State denies this transaction");
     } finally {
@@ -172,6 +188,7 @@ function Dashboard() {
       setReportAmount(1);
       loadProfile();
       loadLedger();
+      loadQuota();
     } catch (err: any) {
       toast.error(err.message ?? "Denouncement denied by the State");
     } finally {
@@ -188,7 +205,9 @@ function Dashboard() {
   }
 
   const rank = getRank(profile.aura_balance);
-  const dailyCap = (profile.aura_balance * 0.1).toFixed(2);
+  // Cap is 10% of balance at the start of the 24h window (current + already sent)
+  const dailyCap = (profile.aura_balance + sentLast24h) * 0.1;
+  const remaining = Math.max(dailyCap - sentLast24h, 0);
 
   return (
     <main className="min-h-screen">
@@ -239,7 +258,7 @@ function Dashboard() {
               {formatAura(profile.aura_balance)}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              Daily transfer cap: <span className="font-bold">{dailyCap} Aura</span> (10%)
+              Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (10%)
             </p>
           </div>
         </section>
