@@ -9,6 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getRank, formatAura } from "@/lib/rank";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
@@ -37,6 +45,13 @@ function Dashboard() {
   const [sending, setSending] = useState(false);
   const [starKey, setStarKey] = useState(0);
   const sendBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [nickOpen, setNickOpen] = useState(false);
+  const [newNick, setNewNick] = useState("");
+  const [savingNick, setSavingNick] = useState(false);
+  const [reportTarget, setReportTarget] = useState<string | null>(null);
+  const [reportAmount, setReportAmount] = useState<number>(1);
+  const [reportReason, setReportReason] = useState("");
+  const [reporting, setReporting] = useState(false);
 
   // Auth gate
   useEffect(() => {
@@ -123,6 +138,47 @@ function Dashboard() {
     navigate({ to: "/" });
   }
 
+  async function changeNickname(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingNick(true);
+    try {
+      const { error } = await supabase.rpc("set_nickname", { p_nickname: newNick.trim() });
+      if (error) throw error;
+      toast.success("The State has registered your new identity");
+      setNickOpen(false);
+      setNewNick("");
+      loadProfile();
+    } catch (err: any) {
+      toast.error(err.message ?? "The State rejected this identity");
+    } finally {
+      setSavingNick(false);
+    }
+  }
+
+  async function submitReport(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reportTarget) return;
+    setReporting(true);
+    try {
+      const { error } = await supabase.rpc("report_comrade", {
+        p_recipient: reportTarget,
+        p_amount: reportAmount,
+        p_reason: reportReason.trim() || undefined,
+      });
+      if (error) throw error;
+      toast.success(`Comrade ${reportTarget} denounced. You both lost ${reportAmount} Aura.`);
+      setReportTarget(null);
+      setReportReason("");
+      setReportAmount(1);
+      loadProfile();
+      loadLedger();
+    } catch (err: any) {
+      toast.error(err.message ?? "Denouncement denied by the State");
+    } finally {
+      setReporting(false);
+    }
+  }
+
   if (loading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -170,6 +226,12 @@ function Dashboard() {
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
             {rank.title}
           </div>
+          <button
+            onClick={() => { setNewNick(profile.nickname ?? ""); setNickOpen(true); }}
+            className="block mt-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-primary underline"
+          >
+            Change identity
+          </button>
 
           <div className="mt-8 border-t-2 border-dashed border-primary/30 pt-4">
             <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Aura Balance</p>
@@ -279,14 +341,26 @@ function Dashboard() {
                   <span className="text-muted-foreground text-sm">→</span>
                   <span className="font-mono font-bold text-primary">{t.receiver?.nickname ?? "?"}</span>
                   <span className="text-muted-foreground text-sm">received</span>
-                  <span className="font-display text-primary">+{formatAura(t.amount_received)}</span>
+                  <span className={`font-display ${t.amount_received < 0 ? "text-destructive" : "text-primary"}`}>
+                    {t.amount_received < 0 ? "" : "+"}{formatAura(t.amount_received)}
+                  </span>
                   {t.message && (
                     <span className="basis-full text-sm italic text-muted-foreground mt-1">
                       “{t.message}”
                     </span>
                   )}
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {new Date(t.created_at).toLocaleString()}
+                  <span className="ml-auto flex items-center gap-2">
+                    {t.sender?.nickname && t.sender.nickname !== profile.nickname && (
+                      <button
+                        onClick={() => { setReportTarget(t.sender!.nickname!); setReportAmount(1); }}
+                        className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        Denounce
+                      </button>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(t.created_at).toLocaleString()}
+                    </span>
                   </span>
                 </motion.li>
               ))}
@@ -294,6 +368,80 @@ function Dashboard() {
           </ul>
         </section>
       </div>
+
+      {/* Change nickname dialog */}
+      <Dialog open={nickOpen} onOpenChange={setNickOpen}>
+        <DialogContent className="border-2 border-primary">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-primary text-2xl">Change Identity</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={changeNickname} className="space-y-4">
+            <div>
+              <Label className="uppercase tracking-wider text-xs">New nickname</Label>
+              <Input
+                required
+                value={newNick}
+                onChange={(e) => setNewNick(e.target.value)}
+                minLength={3}
+                maxLength={20}
+                className="mt-1 border-2 border-primary/30 focus:border-primary font-mono"
+              />
+              <p className="text-xs text-muted-foreground mt-1">3-20 chars, letters/numbers/underscore</p>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={savingNick} className="bg-primary text-primary-foreground uppercase tracking-widest font-display">
+                {savingNick ? "Registering…" : "Register New Identity"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report dialog */}
+      <Dialog open={!!reportTarget} onOpenChange={(o) => !o && setReportTarget(null)}>
+        <DialogContent className="border-2 border-destructive">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive text-2xl">
+              Denounce {reportTarget}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitReport} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Filing a report costs Aura. Both you and the accused will lose the same amount.
+              The State demands sacrifice for justice.
+            </p>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Aura to burn (max 5)</Label>
+              <Input
+                required
+                type="number"
+                min={0.01}
+                max={5}
+                step={0.01}
+                value={reportAmount}
+                onChange={(e) => setReportAmount(Number(e.target.value))}
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive"
+              />
+            </div>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Reason (optional)</Label>
+              <Textarea
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                maxLength={200}
+                rows={2}
+                placeholder="Hoarding potatoes…"
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={reporting} variant="destructive" className="uppercase tracking-widest font-display">
+                {reporting ? "Filing…" : `Burn ${reportAmount} Aura — Denounce`}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
