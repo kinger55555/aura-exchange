@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ALTER COLUMN aura_balance SET DEFAULT 90;
