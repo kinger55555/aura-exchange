@@ -33,6 +33,10 @@ function LeaderboardPage() {
   const [reportAmount, setReportAmount] = useState<number>(1);
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
+  const [sendTarget, setSendTarget] = useState<string | null>(null);
+  const [sendAmount, setSendAmount] = useState<number>(1);
+  const [sendMessage, setSendMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -102,6 +106,28 @@ function LeaderboardPage() {
     }
   }
 
+  async function sendAuraToTarget(e: React.FormEvent) {
+    e.preventDefault();
+    if (!sendTarget) return;
+    setSending(true);
+    try {
+      const { error } = await supabase.rpc("send_aura", {
+        p_recipient: sendTarget,
+        p_amount: sendAmount,
+        p_message: sendMessage.trim() || undefined,
+      });
+      if (error) throw error;
+      toast.success(`+${(sendAmount * 1.5).toFixed(2)} Aura delivered to ${sendTarget}`);
+      setSendTarget(null);
+      setSendMessage("");
+      setSendAmount(1);
+    } catch (err: any) {
+      toast.error(err.message ?? "The State denies this transaction");
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <main className="min-h-screen">
       <header className="bg-primary text-primary-foreground border-b-4 border-secondary">
@@ -165,7 +191,12 @@ function LeaderboardPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="font-mono font-bold text-primary truncate">
-                        {r.nickname}
+                        <button
+                          onClick={() => { setSendTarget(r.nickname!); setSendAmount(1); }}
+                          className="hover:underline cursor-pointer"
+                        >
+                          {r.nickname}
+                        </button>
                         {isMe && (
                           <span className="ml-2 text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
                             You
@@ -178,12 +209,20 @@ function LeaderboardPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       {!isMe && r.nickname && (
-                        <button
-                          onClick={() => { setReportTarget(r.nickname!); setReportAmount(1); }}
-                          className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        >
-                          Denounce
-                        </button>
+                        <>
+                          <button
+                            onClick={() => { setSendTarget(r.nickname!); setSendAmount(1); }}
+                            className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                          >
+                            Send Aura
+                          </button>
+                          <button
+                            onClick={() => { setReportTarget(r.nickname!); setReportAmount(1); }}
+                            className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          >
+                            Denounce
+                          </button>
+                        </>
                       )}
                       <div className="text-right">
                         <p className="font-display text-2xl text-primary">{formatAura(r.aura_balance)}</p>
@@ -238,6 +277,51 @@ function LeaderboardPage() {
             <DialogFooter>
               <Button type="submit" disabled={reporting} variant="destructive" className="uppercase tracking-widest font-display">
                 {reporting ? "Filing…" : `Burn ${reportAmount} Aura — Denounce`}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Aura dialog */}
+      <Dialog open={!!sendTarget} onOpenChange={(o) => !o && setSendTarget(null)}>
+        <DialogContent className="border-2 border-primary">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-primary text-2xl">
+              Reward {sendTarget}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={sendAuraToTarget} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sent Aura is multiplied by ×1.5 for the receiver.
+            </p>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Amount (max 10)</Label>
+              <Input
+                required
+                type="number"
+                min={0.01}
+                max={10}
+                step={0.01}
+                value={sendAmount}
+                onChange={(e) => setSendAmount(Number(e.target.value))}
+                className="mt-1 border-2 border-primary/30 focus:border-primary"
+              />
+            </div>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Good deed (optional)</Label>
+              <Textarea
+                value={sendMessage}
+                onChange={(e) => setSendMessage(e.target.value)}
+                maxLength={200}
+                rows={2}
+                placeholder="For exemplary service to the collective…"
+                className="mt-1 border-2 border-primary/30 focus:border-primary"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={sending} className="uppercase tracking-widest font-display">
+                {sending ? "Submitting…" : `Send ${sendAmount || 0} Aura`}
               </Button>
             </DialogFooter>
           </form>
