@@ -136,6 +136,15 @@ function Index() {
                 ? "Not yet a comrade? Register"
                 : "Already enlisted? Sign in"}
             </button>
+
+            {mode === "signin" && (
+              <Link
+                to="/forgot-password"
+                className="mt-3 block text-xs text-muted-foreground hover:text-primary w-full text-center uppercase tracking-wider"
+              >
+                Forgot your papers?
+              </Link>
+            )}
           </div>
         </div>
       </section>
