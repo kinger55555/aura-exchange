@@ -1,10 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { getRank, formatAura } from "@/lib/rank";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({ meta: [{ title: "Leaderboard — Absolute Communism" }] }),
@@ -19,6 +29,10 @@ function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(true);
+  const [reportTarget, setReportTarget] = useState<string | null>(null);
+  const [reportAmount, setReportAmount] = useState<number>(1);
+  const [reportReason, setReportReason] = useState("");
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -65,6 +79,28 @@ function LeaderboardPage() {
     if (!term) return rows;
     return rows.filter((r) => (r.nickname ?? "").toLowerCase().includes(term));
   }, [rows, q]);
+
+  async function submitReport(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reportTarget) return;
+    setReporting(true);
+    try {
+      const { error } = await supabase.rpc("report_comrade", {
+        p_recipient: reportTarget,
+        p_amount: reportAmount,
+        p_reason: reportReason.trim() || undefined,
+      });
+      if (error) throw error;
+      toast.success(`Comrade ${reportTarget} denounced. You both lost ${reportAmount} Aura.`);
+      setReportTarget(null);
+      setReportReason("");
+      setReportAmount(1);
+    } catch (err: any) {
+      toast.error(err.message ?? "Denouncement denied by the State");
+    } finally {
+      setReporting(false);
+    }
+  }
 
   return (
     <main className="min-h-screen">
@@ -140,9 +176,19 @@ function LeaderboardPage() {
                         {rank.title}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-display text-2xl text-primary">{formatAura(r.aura_balance)}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Aura</p>
+                    <div className="flex items-center gap-3">
+                      {!isMe && r.nickname && (
+                        <button
+                          onClick={() => { setReportTarget(r.nickname!); setReportAmount(1); }}
+                          className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        >
+                          Denounce
+                        </button>
+                      )}
+                      <div className="text-right">
+                        <p className="font-display text-2xl text-primary">{formatAura(r.aura_balance)}</p>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Aura</p>
+                      </div>
                     </div>
                   </li>
                 );
@@ -151,6 +197,52 @@ function LeaderboardPage() {
           )}
         </section>
       </div>
+
+      {/* Report dialog */}
+      <Dialog open={!!reportTarget} onOpenChange={(o) => !o && setReportTarget(null)}>
+        <DialogContent className="border-2 border-destructive">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive text-2xl">
+              Denounce {reportTarget}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitReport} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Filing a report costs Aura. Both you and the accused will lose the same amount.
+              The State demands sacrifice for justice.
+            </p>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Aura to burn (max 5)</Label>
+              <Input
+                required
+                type="number"
+                min={0.01}
+                max={5}
+                step={0.01}
+                value={reportAmount}
+                onChange={(e) => setReportAmount(Number(e.target.value))}
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive"
+              />
+            </div>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Reason (optional)</Label>
+              <Textarea
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                maxLength={200}
+                rows={2}
+                placeholder="Hoarding potatoes…"
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={reporting} variant="destructive" className="uppercase tracking-widest font-display">
+                {reporting ? "Filing…" : `Burn ${reportAmount} Aura — Denounce`}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
