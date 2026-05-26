@@ -15,7 +15,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Lock, Users, Trophy, Ticket } from "lucide-react";
+import { Lock, Users, Trophy, Ticket, Play, ArrowLeft } from "lucide-react";
+import { AssemblyLine } from "@/components/minigames/assembly-line";
+import { ReactorCore } from "@/components/minigames/reactor-core";
+import { SynchronizedMarch } from "@/components/minigames/synchronized-march";
+import { ResourceAllocation } from "@/components/minigames/resource-allocation";
 
 export const Route = createFileRoute("/arena")({
   head: () => ({ meta: [{ title: "Arena — Absolute Communism" }] }),
@@ -26,6 +30,7 @@ type GameWeek = {
   id: string;
   week_label: string;
   game_name: string;
+  game_type: string;
   starts_at: string;
   ends_at: string;
 };
@@ -37,10 +42,28 @@ type Party = {
   password: string | null;
   owner_id: string;
   owner: { nickname: string | null } | null;
-  party_members: { user_id: string }[];
+  party_members: { user_id: string; profiles: { nickname: string | null } | null }[];
+};
+
+type GameSession = {
+  id: string;
+  party_id: string;
+  game_type: string;
+  status: string;
+  aura_quota: number;
+  result_data: Record<string, any> | null;
 };
 
 type TicketInfo = { used: number; total: number };
+
+type Screen = "lobby" | "party" | "playing" | "results";
+
+const GAME_INFO: Record<string, { name: string; desc: string }> = {
+  assembly_line: { name: "The Assembly Line", desc: "Co-op clicking frenzy! Click as fast as possible for 60 seconds." },
+  reactor_core: { name: "The Reactor Core", desc: "Pass the volatile core before it melts down! Survive 90 seconds." },
+  synchronized_march: { name: "Synchronized March", desc: "Hit prompts at the perfect moment! Precision over speed." },
+  resource_allocation: { name: "Resource Allocation", desc: "Grab crates to perfectly match the State's demands. No hoarding!" },
+};
 
 function ArenaPage() {
   const { user, loading } = useAuth();
@@ -49,6 +72,10 @@ function ArenaPage() {
   const [parties, setParties] = useState<Party[]>([]);
   const [tickets, setTickets] = useState<TicketInfo>({ used: 0, total: 0 });
   const [busy, setBusy] = useState(true);
+  const [screen, setScreen] = useState<Screen>("lobby");
+  const [activeParty, setActiveParty] = useState<Party | null>(null);
+  const [activeSession, setActiveSession] = useState<GameSession | null>(null);
+  const [starting, setStarting] = useState(false);
 
   // Create party dialog
   const [createOpen, setCreateOpen] = useState(false);
@@ -62,17 +89,22 @@ function ArenaPage() {
   const [joinPassword, setJoinPassword] = useState("");
   const [joining, setJoining] = useState(false);
 
+  // Result state
+  const [lastResult, setLastResult] = useState<{
+    multiplier: number;
+    status: string;
+    dissidentId?: string;
+  } | null>(null);
+
   const loadData = useCallback(async () => {
     if (!user) return;
     try {
-      // Ensure game week + tickets exist
       const { data: gw } = await supabase.rpc("get_or_create_game_week");
       if (gw) setGameWeek(gw as GameWeek);
 
       await supabase.rpc("ensure_tickets");
 
-      // Load today's tickets
-      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const today = new Date().toISOString().slice(0, 10);
       const { data: tData } = await supabase
         .from("tickets")
         .select("id, used_at, created_at")
@@ -84,10 +116,9 @@ function ArenaPage() {
         setTickets({ used, total: tData.length });
       }
 
-      // Load parties
       const { data: pData } = await supabase
         .from("parties")
-        .select("id, name, aura_bet, password, owner_id, owner:owner_id(nickname), party_members(user_id)")
+        .select("id, name, aura_bet, password, owner_id, owner:owner_id(nickname), party_members(user_id, profiles:user_id(nickname))")
         .eq("game_week_id", (gw as GameWeek)?.id)
         .order("created_at", { ascending: true });
       if (pData) setParties(pData as unknown as Party[]);
@@ -110,6 +141,7 @@ function ArenaPage() {
       .channel("arena")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "parties" }, () => loadData())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "party_members" }, () => loadData())
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "party_members" }, () => loadData())
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -160,6 +192,47 @@ function ArenaPage() {
     }
   }
 
+  async function handleStartGame(partyId: string) {
+    setStarting(true);
+    try {
+      const { data, error } = await supabase.rpc("start_game_session", { p_party_id: partyId });
+      if (error) throw error;
+      if (data) {
+        setActiveSession(data as GameSession);
+        setScreen("playing");
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? "The State denied your shift request");
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function handleGameFinish(result: { multiplier: number; dissidentId?: string } & Record<string, any>) {
+    if (!activeSession) return;
+    const status = result.multiplier === 0 ? "failed" : "completed";
+    try {
+      const { data } = await supabase.rpc("resolve_game", {
+        p_session_id: activeSession.id,
+        p_status: status,
+        p_result_data: result,
+      });
+      if (data) {
+        setLastResult({ multiplier: result.multiplier, status, dissidentId: result.dissidentId });
+        setScreen("results");
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to resolve game");
+      setScreen("lobby");
+    }
+    loadData();
+  }
+
+  const openPartyView = (party: Party) => {
+    setActiveParty(party);
+    setScreen("party");
+  };
+
   const ticketsLeft = tickets.total - tickets.used;
   const myPartyIds = parties
     .filter((p) => p.party_members.some((m) => m.user_id === user?.id))
@@ -174,6 +247,37 @@ function ArenaPage() {
         return `${days}d ${hours}h`;
       })()
     : "--";
+
+  const gameInfo = gameWeek ? GAME_INFO[gameWeek.game_type] ?? GAME_INFO.assembly_line : GAME_INFO.assembly_line;
+
+  const renderMinigame = () => {
+    if (!activeSession || !activeParty || !user) return null;
+    const members = activeParty.party_members.map((m) => ({
+      user_id: m.user_id,
+      nickname: m.profiles?.nickname ?? null,
+    }));
+
+    const props = {
+      sessionId: activeSession.id,
+      userId: user.id,
+      members,
+      auraQuota: activeSession.aura_quota,
+      onFinish: handleGameFinish,
+    };
+
+    switch (activeSession.game_type) {
+      case "assembly_line":
+        return <AssemblyLine {...props} />;
+      case "reactor_core":
+        return <ReactorCore {...props} onFinish={(r) => handleGameFinish(r)} />;
+      case "synchronized_march":
+        return <SynchronizedMarch {...props} onFinish={(r) => handleGameFinish(r)} />;
+      case "resource_allocation":
+        return <ResourceAllocation {...props} onFinish={(r) => handleGameFinish(r)} />;
+      default:
+        return <AssemblyLine {...props} />;
+    }
+  };
 
   return (
     <main className="min-h-screen">
@@ -204,104 +308,304 @@ function ArenaPage() {
       </header>
 
       <div className="max-w-5xl mx-auto p-6 space-y-6">
-        {/* Hero: current game week */}
-        <section className="border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">This Week's Minigame</p>
-              <h1 className="font-display text-5xl uppercase text-primary mt-1">
-                {gameWeek?.game_name ?? "Loading..."}
-              </h1>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground mt-2">
-                Week {gameWeek?.week_label ?? "--"} &middot; Ends in {timeLeft}
+        {/* ========= LOBBY ========= */}
+        {screen === "lobby" && (
+          <>
+            {/* Hero: current game week */}
+            <section className="border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">This Week's Directive</p>
+                  <h1 className="font-display text-5xl uppercase text-primary mt-1">
+                    {gameWeek?.game_name ?? gameInfo.name}
+                  </h1>
+                  <p className="text-sm text-muted-foreground mt-2">{gameInfo.desc}</p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">
+                    Week {gameWeek?.week_label ?? "--"} &middot; Ends in {timeLeft}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="border-2 border-primary/30 bg-card p-4 text-center min-w-[120px]">
+                    <Ticket className="mx-auto text-primary mb-1" size={28} />
+                    <p className="font-display text-3xl text-primary">{ticketsLeft}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Tickets Today</p>
+                  </div>
+                  <Button
+                    onClick={() => setCreateOpen(true)}
+                    className="uppercase tracking-widest font-display bg-primary text-primary-foreground hover:bg-primary/90 h-12"
+                  >
+                    Create Party
+                  </Button>
+                </div>
+              </div>
+            </section>
+
+            {/* Rules */}
+            <section className="border-2 border-primary/30 bg-card p-4">
+              <h3 className="font-display text-lg uppercase text-primary">Ministry Directives</h3>
+              <ul className="mt-2 space-y-1 text-xs uppercase tracking-widest text-muted-foreground">
+                <li>Minimum 3 comrades per Proletariat Party</li>
+                <li>3 shifts (tickets) per day — no overwork</li>
+                <li>Aura Quota is pledged before the shift begins</li>
+                <li>15 seconds of inactivity = Dissident label — you lose your Quota</li>
+                <li>Payout is distributed equally among loyal workers</li>
+              </ul>
+            </section>
+
+            {/* Party list */}
+            <section className="border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
+              <h2 className="font-display text-3xl uppercase text-primary">Active Parties</h2>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">
+                Join a party or create your own to enter the Arena
+              </p>
+
+              {busy ? (
+                <p className="mt-8 text-center font-display text-xl uppercase text-primary">Loading the Arena...</p>
+              ) : parties.length === 0 ? (
+                <p className="mt-8 text-center text-muted-foreground uppercase tracking-wider text-sm">
+                  No parties yet. Be the first to create one.
+                </p>
+              ) : (
+                <ul className="mt-6 divide-y-2 divide-dashed divide-primary/20">
+                  {parties.map((p) => {
+                    const isMember = myPartyIds.includes(p.id);
+                    const isOwner = p.owner_id === user?.id;
+                    const memberCount = p.party_members.length;
+                    const hasPassword = p.password !== null && p.password !== "";
+                    const canPlay = isMember && memberCount >= 3 && ticketsLeft > 0;
+                    return (
+                      <motion.li
+                        key={p.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex items-center gap-4 py-4"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => isMember ? openPartyView(p) : undefined}
+                              className={`font-mono font-bold text-primary text-lg truncate ${isMember ? "hover:underline cursor-pointer" : ""}`}
+                            >
+                              {p.name}
+                            </button>
+                            {hasPassword && <Lock size={14} className="text-muted-foreground" />}
+                            {isOwner && (
+                              <span className="text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
+                                Owner
+                              </span>
+                            )}
+                            {isMember && !isOwner && (
+                              <span className="text-[10px] uppercase tracking-widest bg-primary text-primary-foreground px-1.5 py-0.5">
+                                Joined
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
+                              <Users size={12} /> {memberCount} comrade{memberCount !== 1 ? "s" : ""}
+                              {memberCount < 3 && <span className="text-destructive ml-1">(need 3+)</span>}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
+                              <Trophy size={12} /> {formatAura(p.aura_bet)} Aura bet
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              by {p.owner?.nickname ?? "Unknown"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {canPlay && (
+                            <Button
+                              onClick={() => handleStartGame(p.id)}
+                              disabled={starting}
+                              className="uppercase tracking-wider text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+                            >
+                              <Play size={14} className="mr-1" /> Start Shift
+                            </Button>
+                          )}
+                          {!isMember && (
+                            <Button
+                              onClick={() => { setJoinTarget(p); setJoinPassword(""); }}
+                              variant="outline"
+                              className="uppercase tracking-wider text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                            >
+                              Join
+                            </Button>
+                          )}
+                        </div>
+                      </motion.li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* ========= PARTY VIEW ========= */}
+        {screen === "party" && activeParty && (
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => { setScreen("lobby"); setActiveParty(null); }}
+              className="uppercase tracking-wider text-xs text-muted-foreground hover:text-primary"
+            >
+              <ArrowLeft size={14} className="mr-1" /> Back to Lobby
+            </Button>
+
+            <section className="border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
+              <h2 className="font-display text-4xl uppercase text-primary">{activeParty.name}</h2>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
+                  <Users size={14} /> {activeParty.party_members.length} comrade{activeParty.party_members.length !== 1 ? "s" : ""}
+                </span>
+                <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
+                  <Trophy size={14} /> {formatAura(activeParty.aura_bet)} Aura per comrade
+                </span>
+                {activeParty.password && (
+                  <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
+                    <Lock size={14} /> Password protected
+                  </span>
+                )}
+              </div>
+
+              {/* Member list */}
+              <div className="mt-6 space-y-2">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">Proletariat Roster</p>
+                {activeParty.party_members.map((m) => (
+                  <div
+                    key={m.user_id}
+                    className={`flex items-center gap-3 p-2 border ${
+                      m.user_id === user?.id ? "border-primary bg-primary/5" : "border-primary/20"
+                    }`}
+                  >
+                    <span className="font-mono text-sm text-primary">{m.profiles?.nickname ?? "Unknown"}</span>
+                    {m.user_id === activeParty.owner_id && (
+                      <span className="text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
+                        Commissar
+                      </span>
+                    )}
+                    {m.user_id === user?.id && (
+                      <span className="text-[10px] uppercase tracking-widest bg-primary text-primary-foreground px-1.5 py-0.5">
+                        You
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Start game */}
+              <div className="mt-6 border-t-2 border-dashed border-primary/30 pt-4">
+                {activeParty.party_members.length < 3 ? (
+                  <p className="text-sm text-destructive uppercase tracking-widest">
+                    Need at least 3 comrades to start the shift. Waiting for {3 - activeParty.party_members.length} more...
+                  </p>
+                ) : ticketsLeft <= 0 ? (
+                  <p className="text-sm text-destructive uppercase tracking-widest">
+                    No tickets remaining today. Return tomorrow, comrade.
+                  </p>
+                ) : (
+                  <Button
+                    onClick={() => handleStartGame(activeParty.id)}
+                    disabled={starting}
+                    className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-display text-lg h-14 hover:bg-primary/90"
+                  >
+                    <Play size={20} className="mr-2" />
+                    {starting ? "Clocking in..." : "Clock In — Start the Shift!"}
+                  </Button>
+                )}
+              </div>
+            </section>
+
+            {/* Game info for this week */}
+            <section className="border-2 border-primary/30 bg-card p-4">
+              <h3 className="font-display text-lg uppercase text-primary">{gameInfo.name}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{gameInfo.desc}</p>
+              <p className="text-xs text-muted-foreground mt-2 uppercase tracking-widest">
+                15s AFK = Dissident label. The Dissident loses their Quota; loyal comrades are refunded.
+              </p>
+            </section>
+          </>
+        )}
+
+        {/* ========= PLAYING ========= */}
+        {screen === "playing" && (
+          <>
+            <div className="text-center mb-2">
+              <p className="text-xs uppercase tracking-widest text-destructive">
+                INACTIVITY FOR 15s = DISSIDENT LABEL — YOU WILL LOSE YOUR AURA QUOTA
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="border-2 border-primary/30 bg-card p-4 text-center min-w-[120px]">
-                <Ticket className="mx-auto text-primary mb-1" size={28} />
-                <p className="font-display text-3xl text-primary">{ticketsLeft}</p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Tickets Today</p>
-              </div>
-              <Button
-                onClick={() => setCreateOpen(true)}
-                className="uppercase tracking-widest font-display bg-primary text-primary-foreground hover:bg-primary/90 h-12"
-              >
-                Create Party
-              </Button>
-            </div>
-          </div>
-        </section>
+            {renderMinigame()}
+          </>
+        )}
 
-        {/* Party list */}
-        <section className="border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
-          <h2 className="font-display text-3xl uppercase text-primary">Active Parties</h2>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">
-            Join a party or create your own to enter the Arena
-          </p>
-
-          {busy ? (
-            <p className="mt-8 text-center font-display text-xl uppercase text-primary">Loading the Arena...</p>
-          ) : parties.length === 0 ? (
-            <p className="mt-8 text-center text-muted-foreground uppercase tracking-wider text-sm">
-              No parties yet. Be the first to create one.
-            </p>
-          ) : (
-            <ul className="mt-6 divide-y-2 divide-dashed divide-primary/20">
-              {parties.map((p) => {
-                const isMember = myPartyIds.includes(p.id);
-                const isOwner = p.owner_id === user?.id;
-                const memberCount = p.party_members.length;
-                const hasPassword = p.password !== null && p.password !== "";
-                return (
-                  <motion.li
-                    key={p.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="flex items-center gap-4 py-4"
+        {/* ========= RESULTS ========= */}
+        {screen === "results" && lastResult && activeParty && (
+          <>
+            <section className="border-2 border-primary bg-card p-8 shadow-[8px_8px_0_0_var(--primary)] text-center">
+              {lastResult.status === "failed" && lastResult.dissidentId ? (
+                <>
+                  <motion.p
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="font-display text-6xl uppercase text-destructive"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-mono font-bold text-primary text-lg truncate">{p.name}</p>
-                        {hasPassword && <Lock size={14} className="text-muted-foreground" />}
-                        {isOwner && (
-                          <span className="text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
-                            Owner
-                          </span>
-                        )}
-                        {isMember && !isOwner && (
-                          <span className="text-[10px] uppercase tracking-widest bg-primary text-primary-foreground px-1.5 py-0.5">
-                            Joined
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
-                          <Users size={12} /> {memberCount} comrade{memberCount !== 1 ? "s" : ""}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground">
-                          <Trophy size={12} /> {formatAura(p.aura_bet)} Aura bet
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          by {p.owner?.nickname ?? "Unknown"}
-                        </span>
-                      </div>
-                    </div>
-                    {!isMember && (
-                      <Button
-                        onClick={() => { setJoinTarget(p); setJoinPassword(""); }}
-                        variant="outline"
-                        className="uppercase tracking-wider text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                      >
-                        Join
-                      </Button>
-                    )}
-                  </motion.li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+                    Dissident Detected!
+                  </motion.p>
+                  <p className="text-sm text-muted-foreground mt-4 uppercase tracking-widest">
+                    A comrade failed to contribute. The shift has been terminated.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    The Dissident forfeits their Aura Quota. Loyal comrades are refunded in full.
+                  </p>
+                </>
+              ) : lastResult.multiplier === 0 ? (
+                <>
+                  <p className="font-display text-6xl uppercase text-destructive">Substandard</p>
+                  <p className="text-sm text-muted-foreground mt-4 uppercase tracking-widest">
+                    The State is disappointed. Your collective output was insufficient.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <motion.p
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="font-display text-6xl uppercase text-primary"
+                  >
+                    {lastResult.multiplier >= 2
+                      ? "Vanguard of the Proletariat!"
+                      : lastResult.multiplier >= 1.5
+                        ? "Exemplary!"
+                        : "Adequate"}
+                  </motion.p>
+                  <div className="mt-6 border-2 border-secondary bg-secondary/10 p-6 inline-block">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Payout Multiplier</p>
+                    <p className="font-display text-8xl text-secondary">{lastResult.multiplier}x</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-4">
+                    Aura distributed equally among all loyal workers.
+                  </p>
+                </>
+              )}
+
+              <Button
+                onClick={() => {
+                  setScreen("lobby");
+                  setActiveParty(null);
+                  setActiveSession(null);
+                  setLastResult(null);
+                  loadData();
+                }}
+                className="mt-8 bg-primary text-primary-foreground uppercase tracking-widest font-display"
+              >
+                Return to the Arena
+              </Button>
+            </section>
+          </>
+        )}
       </div>
 
       {/* Create party dialog */}
