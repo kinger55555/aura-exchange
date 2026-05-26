@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 type GameEvent = {
   type: string;
-  payload: Record<string, any>;
+  sessionId: string;
+  userId: string;
+  [key: string]: any;
 };
 
 type UseGameChannelOpts = {
