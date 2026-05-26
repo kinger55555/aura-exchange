@@ -71,12 +71,14 @@ function ArenaPage() {
 
       await supabase.rpc("ensure_tickets");
 
-      // Load tickets
+      // Load today's tickets
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const { data: tData } = await supabase
         .from("tickets")
-        .select("id, used_at")
+        .select("id, used_at, created_at")
         .eq("user_id", user.id)
-        .eq("game_week_id", (gw as GameWeek)?.id);
+        .eq("game_week_id", (gw as GameWeek)?.id)
+        .gte("created_at", today);
       if (tData) {
         const used = tData.filter((t: any) => t.used_at !== null).length;
         setTickets({ used, total: tData.length });
@@ -218,7 +220,7 @@ function ArenaPage() {
               <div className="border-2 border-primary/30 bg-card p-4 text-center min-w-[120px]">
                 <Ticket className="mx-auto text-primary mb-1" size={28} />
                 <p className="font-display text-3xl text-primary">{ticketsLeft}</p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Tickets Left</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Tickets Today</p>
               </div>
               <Button
                 onClick={() => setCreateOpen(true)}
