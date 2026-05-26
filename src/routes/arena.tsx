@@ -155,7 +155,7 @@ function ArenaPage() {
       const { data, error } = await supabase.rpc("create_party", {
         p_name: pName.trim(),
         p_aura_bet: Number(pBet),
-        p_password: pPassword.trim() || undefined,
+        p_password: pPassword.trim() || null,
       });
       if (error) {
         throw new Error(error.message || "The State denied your party request");
@@ -183,7 +183,7 @@ function ArenaPage() {
     try {
       const { data, error } = await supabase.rpc("join_party", {
         p_party_id: joinTarget.id,
-        p_password: joinPassword || undefined,
+        p_password: joinPassword || null,
       });
       if (error) {
         throw new Error(error.message || "The State denied your entry");
