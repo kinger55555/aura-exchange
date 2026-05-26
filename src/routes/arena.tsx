@@ -152,12 +152,17 @@ function ArenaPage() {
     e.preventDefault();
     setCreating(true);
     try {
-      const { error } = await supabase.rpc("create_party", {
+      const { data, error } = await supabase.rpc("create_party", {
         p_name: pName.trim(),
-        p_aura_bet: pBet,
+        p_aura_bet: Number(pBet),
         p_password: pPassword.trim() || null,
       });
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "The State denied your party request");
+      }
+      if (!data) {
+        throw new Error("No party was created");
+      }
       toast.success("Party forged in the spirit of the collective");
       setCreateOpen(false);
       setPName("");
@@ -176,11 +181,16 @@ function ArenaPage() {
     if (!joinTarget) return;
     setJoining(true);
     try {
-      const { error } = await supabase.rpc("join_party", {
+      const { data, error } = await supabase.rpc("join_party", {
         p_party_id: joinTarget.id,
         p_password: joinPassword || null,
       });
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "The State denied your entry");
+      }
+      if (!data) {
+        throw new Error("Failed to join party");
+      }
       toast.success(`Joined "${joinTarget.name}" — glory to the collective!`);
       setJoinTarget(null);
       setJoinPassword("");
@@ -196,11 +206,14 @@ function ArenaPage() {
     setStarting(true);
     try {
       const { data, error } = await supabase.rpc("start_game_session", { p_party_id: partyId });
-      if (error) throw error;
-      if (data) {
-        setActiveSession(data as GameSession);
-        setScreen("playing");
+      if (error) {
+        throw new Error(error.message || "The State denied your shift request");
       }
+      if (!data) {
+        throw new Error("Failed to start game session");
+      }
+      setActiveSession(data as GameSession);
+      setScreen("playing");
     } catch (err: any) {
       toast.error(err.message ?? "The State denied your shift request");
     } finally {
@@ -233,20 +246,31 @@ function ArenaPage() {
     setScreen("party");
   };
 
+  const [timeLeft, setTimeLeft] = useState("--");
+
+  // Update countdown every second
+  useEffect(() => {
+    if (!gameWeek) return;
+    const updateTime = () => {
+      const weekEnd = new Date(gameWeek.ends_at);
+      const diff = weekEnd.getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("expired");
+      } else {
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        setTimeLeft(`${days}d ${hours}h`);
+      }
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, [gameWeek]);
+
   const ticketsLeft = tickets.total - tickets.used;
   const myPartyIds = parties
     .filter((p) => p.party_members.some((m) => m.user_id === user?.id))
     .map((p) => p.id);
-
-  const weekEnd = gameWeek ? new Date(gameWeek.ends_at) : null;
-  const timeLeft = weekEnd
-    ? (() => {
-        const diff = weekEnd.getTime() - Date.now();
-        const days = Math.floor(diff / 86400000);
-        const hours = Math.floor((diff % 86400000) / 3600000);
-        return `${days}d ${hours}h`;
-      })()
-    : "--";
 
   const gameInfo = gameWeek ? GAME_INFO[gameWeek.game_type] ?? GAME_INFO.assembly_line : GAME_INFO.assembly_line;
 
