@@ -224,6 +224,11 @@ function Dashboard() {
                 Leaderboard
               </Button>
             </Link>
+            <Link to="/arena">
+              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
+                Arena
+              </Button>
+            </Link>
             <Button
               onClick={signOut}
               variant="ghost"
