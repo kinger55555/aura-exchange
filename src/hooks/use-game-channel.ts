@@ -1,10 +1,11 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type GameEvent = Record<string, any> & {
+type GameEvent = {
   type: string;
-  sessionId?: string;
-  userId?: string;
+  sessionId: string;
+  userId: string;
+  [key: string]: any;
 };
 
 type UseGameChannelOpts = {
