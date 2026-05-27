@@ -228,6 +228,11 @@ function Dashboard() {
                 Leaderboard
               </Button>
             </Link>
+            <Link to="/games">
+              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
+                Games
+              </Button>
+            </Link>
             <Button
               onClick={signOut}
               variant="ghost"
