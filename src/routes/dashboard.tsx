@@ -20,6 +20,9 @@ import {
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    to: typeof search.to === "string" ? search.to : undefined,
+  }),
   component: Dashboard,
 });
 
@@ -37,9 +40,10 @@ type Ledger = {
 function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { to } = Route.useSearch();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ledger, setLedger] = useState<Ledger[]>([]);
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(to ?? "");
   const [amount, setAmount] = useState<number>(1);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);

@@ -14,6 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
+      game_sessions: {
+        Row: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          status: string
+        }
+        Insert: {
+          aura_quota?: number
+          created_at?: string
+          game_type: string
+          id?: string
+          party_id: string
+          result_data?: Json | null
+          status?: string
+        }
+        Update: {
+          aura_quota?: number
+          created_at?: string
+          game_type?: string
+          id?: string
+          party_id?: string
+          result_data?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_weeks: {
+        Row: {
+          created_at: string
+          ends_at: string
+          game_name: string
+          game_type: string
+          id: string
+          starts_at: string
+          week_label: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string
+          game_name: string
+          game_type: string
+          id?: string
+          starts_at?: string
+          week_label: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          game_name?: string
+          game_type?: string
+          id?: string
+          starts_at?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
+      parties: {
+        Row: {
+          aura_bet: number
+          created_at: string
+          game_week_id: string
+          id: string
+          name: string
+          owner_id: string
+          password: string | null
+        }
+        Insert: {
+          aura_bet?: number
+          created_at?: string
+          game_week_id: string
+          id?: string
+          name: string
+          owner_id: string
+          password?: string | null
+        }
+        Update: {
+          aura_bet?: number
+          created_at?: string
+          game_week_id?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          password?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parties_game_week_id_fkey"
+            columns: ["game_week_id"]
+            isOneToOne: false
+            referencedRelation: "game_weeks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_members: {
+        Row: {
+          id: string
+          joined_at: string
+          party_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          party_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          party_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_members_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           aura_balance: number
@@ -34,6 +183,45 @@ export type Database = {
           nickname?: string | null
         }
         Relationships: []
+      }
+      tickets: {
+        Row: {
+          created_at: string
+          game_week_id: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_week_id: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_week_id?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_game_week_id_fkey"
+            columns: ["game_week_id"]
+            isOneToOne: false
+            referencedRelation: "game_weeks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -85,6 +273,58 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_party: {
+        Args: { p_aura_bet: number; p_name: string; p_password?: string }
+        Returns: {
+          aura_bet: number
+          created_at: string
+          game_week_id: string
+          id: string
+          name: string
+          owner_id: string
+          password: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ensure_tickets: { Args: never; Returns: undefined }
+      get_or_create_game_week: {
+        Args: never
+        Returns: {
+          created_at: string
+          ends_at: string
+          game_name: string
+          game_type: string
+          id: string
+          starts_at: string
+          week_label: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_weeks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      join_party: {
+        Args: { p_party_id: string; p_password?: string }
+        Returns: {
+          id: string
+          joined_at: string
+          party_id: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "party_members"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
@@ -96,6 +336,24 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      resolve_game: {
+        Args: { p_result_data: Json; p_session_id: string; p_status: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -126,6 +384,24 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_game_session: {
+        Args: { p_party_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
           isOneToOne: true
           isSetofReturn: false
         }
