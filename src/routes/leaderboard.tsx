@@ -165,7 +165,13 @@ function LeaderboardPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="font-mono font-bold text-primary truncate">
-                        {r.nickname}
+                        <Link
+                          to="/dashboard"
+                          search={{ to: r.nickname ?? undefined }}
+                          className="hover:underline hover:text-secondary transition-colors"
+                        >
+                          {r.nickname}
+                        </Link>
                         {isMe && (
                           <span className="ml-2 text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
                             You

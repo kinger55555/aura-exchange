@@ -20,6 +20,9 @@ import {
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    to: typeof search.to === "string" ? search.to : undefined,
+  }),
   component: Dashboard,
 });
 
