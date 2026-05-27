@@ -40,9 +40,10 @@ type Ledger = {
 function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { to } = Route.useSearch();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ledger, setLedger] = useState<Ledger[]>([]);
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(to ?? "");
   const [amount, setAmount] = useState<number>(1);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
