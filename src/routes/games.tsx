@@ -101,7 +101,7 @@ function GamesPage() {
     const { error } = await supabase.rpc("create_party", {
       p_name: pName,
       p_aura_bet: pBet,
-      p_password: pPwd.trim() ? pPwd.trim() : null,
+      p_password: pPwd.trim() ? pPwd.trim() : undefined,
     });
     setCreating(false);
     if (error) {
@@ -118,7 +118,7 @@ function GamesPage() {
     setJoining(true);
     const { error } = await supabase.rpc("join_party", {
       p_party_id: party.id,
-      p_password: pwd || null,
+      p_password: pwd || undefined,
     });
     setJoining(false);
     if (error) {
