@@ -234,9 +234,29 @@ function GamesPage() {
                     </div>
                     <div>
                       {isMember ? (
-                        <span className="text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/40 text-primary">
-                          Joined
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {activeSessions[p.id] ? (
+                            <Button
+                              size="sm"
+                              onClick={() => navigate({ to: "/games/$sessionId", params: { sessionId: activeSessions[p.id] } })}
+                              className="uppercase tracking-widest font-display bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Resume Shift
+                            </Button>
+                          ) : count >= 3 ? (
+                            <Button
+                              size="sm"
+                              onClick={() => startShift(p.id)}
+                              className="uppercase tracking-widest font-display"
+                            >
+                              Start Shift
+                            </Button>
+                          ) : (
+                            <span className="text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/40 text-primary">
+                              Joined · need {3 - count} more
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <Button
                           size="sm"
