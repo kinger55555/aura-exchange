@@ -22,6 +22,7 @@ export type Database = {
           id: string
           party_id: string
           result_data: Json | null
+          state: Json
           status: string
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           party_id: string
           result_data?: Json | null
+          state?: Json
           status?: string
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           id?: string
           party_id?: string
           result_data?: Json | null
+          state?: Json
           status?: string
         }
         Relationships: [
@@ -273,6 +276,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _rr_payout: {
+        Args: {
+          p_dissident: string
+          p_exploded: string
+          p_multiplier: number
+          p_party: Database["public"]["Tables"]["parties"]["Row"]
+          p_session: Database["public"]["Tables"]["game_sessions"]["Row"]
+        }
+        Returns: undefined
+      }
       create_party: {
         Args: { p_aura_bet: number; p_name: string; p_password?: string }
         Returns: {
@@ -349,6 +362,64 @@ export type Database = {
           id: string
           party_id: string
           result_data: Json | null
+          state: Json
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rr_mark_afk: {
+        Args: { p_session_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          state: Json
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rr_press: {
+        Args: { p_session_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          state: Json
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rr_vote: {
+        Args: { p_cash_out: boolean; p_session_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          state: Json
           status: string
         }
         SetofOptions: {
@@ -397,6 +468,7 @@ export type Database = {
           id: string
           party_id: string
           result_data: Json | null
+          state: Json
           status: string
         }
         SetofOptions: {
