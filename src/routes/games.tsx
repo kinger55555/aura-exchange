@@ -36,6 +36,7 @@ type Party = {
   game_week_id: string;
   members: { user_id: string; profiles: { nickname: string | null } | null }[];
 };
+type ActiveSession = { id: string; party_id: string };
 
 function GamesPage() {
   const { user, loading } = useAuth();
@@ -43,6 +44,7 @@ function GamesPage() {
   const [week, setWeek] = useState<Week | null>(null);
   const [ticketsLeft, setTicketsLeft] = useState<number>(0);
   const [parties, setParties] = useState<Party[]>([]);
+  const [activeSessions, setActiveSessions] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(true);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -82,6 +84,18 @@ function GamesPage() {
         .eq("game_week_id", weekRow.id)
         .order("created_at", { ascending: false });
       setParties(((pData as any) ?? []) as Party[]);
+
+      const partyIds = ((pData as any) ?? []).map((p: any) => p.id);
+      if (partyIds.length) {
+        const { data: sData } = await supabase
+          .from("game_sessions")
+          .select("id, party_id")
+          .in("party_id", partyIds)
+          .eq("status", "in_progress");
+        const map: Record<string, string> = {};
+        ((sData as ActiveSession[] | null) ?? []).forEach((s) => { map[s.party_id] = s.id; });
+        setActiveSessions(map);
+      }
     }
     setBusy(false);
   }, [user]);
@@ -129,6 +143,13 @@ function GamesPage() {
     setJoinTarget(null);
     setJoinPwd("");
     load();
+  }
+
+  async function startShift(partyId: string) {
+    const { data, error } = await supabase.rpc("start_game_session", { p_party_id: partyId });
+    if (error) { toast.error(error.message); return; }
+    const s = data as any;
+    if (s?.id) navigate({ to: "/games/$sessionId", params: { sessionId: s.id } });
   }
 
   const myId = user?.id;
