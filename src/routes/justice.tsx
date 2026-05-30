@@ -107,7 +107,7 @@ function JusticePage() {
 
   async function issueBan() {
     if (!active || !active.target_user_id) return;
-    const days = role === "owner" && banDays === 0 ? null : banDays;
+    const days = role === "owner" && banDays === 0 ? undefined : banDays;
     try {
       const { error } = await supabase.rpc("issue_ban", {
         p_user_id: active.target_user_id,
