@@ -236,11 +236,6 @@ function Dashboard() {
             <span className="font-display text-2xl uppercase tracking-wider">Absolute Communism</span>
           </div>
           <nav className="flex items-center gap-2">
-            <Link to="/leaderboard">
-              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
-                Leaderboard
-              </Button>
-            </Link>
             <Button
               onClick={signOut}
               variant="ghost"
@@ -386,14 +381,6 @@ function Dashboard() {
                     </span>
                   )}
                   <span className="ml-auto flex items-center gap-2">
-                    {t.sender?.nickname && t.sender.nickname !== profile.nickname && (
-                      <button
-                        onClick={() => { setReportTarget(t.sender!.nickname!); setReportAmount(1); }}
-                        className="text-[10px] uppercase tracking-wider px-2 py-0.5 border border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        Denounce
-                      </button>
-                    )}
                     <span className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString()}
                     </span>
