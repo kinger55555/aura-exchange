@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as JusticeRouteImport } from './routes/justice'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JusticeRoute = JusticeRouteImport.update({
+  id: '/justice',
+  path: '/justice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/justice'
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/justice'
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/justice'
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  JusticeRoute: typeof JusticeRoute
   LeaderboardRoute: typeof LeaderboardRoute
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/justice': {
+      id: '/justice'
+      path: '/justice'
+      fullPath: '/justice'
+      preLoaderRoute: typeof JusticeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  JusticeRoute: JusticeRoute,
   LeaderboardRoute: LeaderboardRoute,
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -166,3 +187,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
