@@ -1,120 +1,68 @@
-# Absolute Communism — Build Plan
+# Administration & Justice System
 
-A themed social appreciation app where comrades reward each other with "Aura". Built on TanStack Start + Lovable Cloud (Supabase under the hood) for auth, database, and server-enforced rules.
+A big update. Splitting into clear phases so nothing is left half-built.
 
-## 1. Backend (Lovable Cloud)
+## 0. Cleanup
+- Remove the Games tab and its routes from the nav (keep DB tables for now; they're inert). Drop nav buttons in dashboard & leaderboard.
+- Set **David** as the Owner (looked up by nickname `David`, case-insensitive).
+- Full pass to make every screen mobile-first (≤411px). Sticky bottom tab bar for Dashboard / Leaderboard / Reports.
 
-### Auth
+## 1. Roles & Hierarchy
+New tables:
+- `staff_roles(user_id, role, hired_by, weekly_salary, hired_at)` — role ∈ `owner | admin | moderator`.
+- `bans(user_id, issued_by, reason, expires_at, status)` — `status` ∈ `active | lifted | appealed`.
+- `reports(id, type, priority, reporter_id, target_user_id, payload, status, assigned_to, resolution, created_at, resolved_at)` — `type` ∈ `player_report | mod_report | auraguard | aura_appeal | ban_appeal | feature_idea | minigame_idea | admin_escalation`.
+- `report_actions(report_id, actor_id, action, notes, created_at)` — full audit log; quota = COUNT of these per actor per ISO week.
+- `staff_checkins(user_id, day)` — unique per (user_id, day); 2 quota points each.
+- `staff_warnings(user_id, week, reason)` — drives auto-demotion after 2 consecutive misses.
 
-- Enable Lovable Cloud
-- Email/password auth (no nickname at signup — picked after first login)
-- Auto-create profile row via DB trigger on `auth.users` insert
+`has_role(user_id, role)` security-definer function + RLS scoped via it (no recursion).
 
-### Tables (migration)
+## 2. Justice Dashboard `/justice`
+Single mobile-first screen, content depends on role.
 
-`profiles`
+**Owner queue** strictly sorted:
+1. Admin escalations
+2. Standard reports about staff + ban appeals + aura appeals about admins
+3. Feature / minigame ideas (global floating 💡 button submits here)
 
-- `id` uuid PK, FK → `auth.users(id)` on delete cascade
-- `nickname` text unique, nullable (set after first login)
-- `aura_balance` numeric(12,2) not null default 100
-- `created_at` timestamptz default now()
+**Admin queue:** mod-targeted reports, aura appeals on their own mods, escalate→Owner button, hire/fire mods, set mod salaries.
 
-`transactions`
+**Mod queue:** player reports + AuraGuard flags. Actions: deduct Aura, dismiss, escalate to hiring Admin.
 
-- `id` uuid PK default gen_random_uuid()
-- `sender_id` uuid FK → profiles(id)
-- `receiver_id` uuid FK → profiles(id)
-- `amount_sent` numeric(12,2) not null
-- `amount_received` numeric(12,2) not null  (sent * 1.5, stored for ledger clarity)
-- `message` text (optional, length-capped)
-- `created_at` timestamptz default now() — indexed for 24h window queries
+Every action writes a `report_actions` row (= 1 quota point).
 
-### RLS
+## 3. Reporting flows
+- Replace existing "Denounce" buttons so they open a Report dialog (player_report). Small fee (0.5 Aura) charged via existing balance.
+- 🛡️ shield icon next to staff nicknames → mod_report (bypasses Mods, goes to Admins).
+- Penalty appeal button on the player's own profile/transactions when penalized.
+- Ban appeal screen shown when a banned user logs in; routes to Owner.
+- Floating 💡 button (bottom-right, all screens) submits feature/minigame ideas → Owner P3.
 
-- `profiles`: anyone authenticated can SELECT (needed for nickname lookup + ledger display names); only self can UPDATE own nickname (and only if currently null, to enforce uniqueness/immutability of choice — TBD if editable)
-- `transactions`: authenticated SELECT (public ledger); no direct INSERT/UPDATE/DELETE from clients — all writes go through a SECURITY DEFINER RPC
+## 4. AuraGuard (automated)
+Postgres trigger on `transactions` + `profiles`:
+- Flag if a user receives > 30 Aura in 1h, or sends ≥ 8 transfers in 5min, or balance jumps > 50 outside known RPCs.
+- Inserts `reports` row of type `auraguard`, priority = mod queue.
 
-### `send_aura` Postgres function (SECURITY DEFINER)
+## 5. Salary & quota
+- Weekly cron (`pg_cron`, Sundays 00:05 UTC) `run_weekly_payroll()`:
+  - For each staff: count `report_actions` + `staff_checkins*2` for the past ISO week.
+  - ≥10 → transfer `weekly_salary` from `hired_by` profile to staff profile (Owner pays admins; Admins pay their mods; Owner's own salary skipped).
+  - <10 → insert `staff_warnings`; if previous week also a warning → auto-demote (remove `staff_roles` row).
+- Empty-queue check-in button shows only when queue is 0; one per UTC day; +2 points.
 
-Atomic transfer enforcing all rules server-side:
+## 6. Bans enforcement
+- Wrap `__root.tsx` auth flow: if active ban → redirect to `/banned` (appeal form). All other RPCs already gated by RLS auth, but add `is_banned(uid)` guard inside `send_aura`, `report_comrade`, `create_party`, `join_party`, report creation.
 
-1. Resolve recipient by nickname (case-insensitive); error if not found or self
-2. Validate `amount > 0` and `amount <= 10`
-3. Compute sum of `amount_sent` by sender in last 24h; reject if `sum + amount > 0.10 * sender.aura_balance`
-4. Reject if sender balance < amount
-5. Deduct `amount` from sender, credit `amount * 1.5` to receiver
-6. Insert transaction row
-7. Return new sender balance
+## Technical
+- All new tables get GRANTs + RLS (`has_role`-based) in one migration.
+- New RPCs: `submit_report`, `act_on_report`, `escalate_report`, `hire_staff`, `fire_staff`, `submit_appeal`, `staff_checkin`, `run_weekly_payroll`, `auraguard_scan` (trigger fn).
+- Frontend: new routes `/justice`, `/banned`, `/admin/staff` (Owner-only hire panel). Mobile bottom nav component replaces the inline header buttons.
+- Keep `dashboard.tsx` aura-send logic untouched; only swap navigation chrome.
 
-All limit checks live here so the client cannot bypass them.
+## Out of scope (will not do unless you say so)
+- Real-time websocket push for new reports (uses Supabase realtime polling on the table).
+- Reworking Russian Roulette — Games tab is just hidden.
+- Custom moderator chat / DM system.
 
-### Nickname setup
-
-- `set_nickname(nickname text)` RPC: validates uniqueness, format (3–20 chars, alphanumeric/underscore), assigns to current user
-
-## 2. Frontend (TanStack Start)
-
-### Routes
-
-- `/` — landing/login (themed hero + auth form)
-- `/onboarding` — nickname picker (shown if profile.nickname is null)
-- `/_authenticated/dashboard` — main app
-- `_authenticated.tsx` layout guards via `beforeLoad` redirect
-
-### Dashboard sections
-
-- **Comrade card**: nickname, rank badge, current Aura balance (large, gold)
-- **Send Aura form**: recipient nickname, amount (1–10), optional message
-- **Recent Good Deeds ledger**: live list of recent transactions (`sender → receiver: +X Aura — "message"`), polled or realtime-subscribed
-
-### Rank (client-side helper)
-
-```
-< 0       → Absolute Loser
-0–99      → Peasant
-100–499   → Comrade
-500–999   → Commissar
-1000+     → Stalin
-```
-
-Display next to nickname everywhere it appears (header, ledger entries).
-
-### Error handling
-
-Server RPC errors mapped to thematic toasts via sonner:
-
-- "Transaction denied by the State: limit exceeded"
-- "The State does not recognize this comrade"
-- "Insufficient Aura, comrade"
-
-### Success animation
-
-Framer Motion: gold star + hammer/sickle motif rises and fades from the send button on successful transfer; balance counter animates down, ledger prepends new row with slide-in.
-
-## 3. Design System
-
-Propaganda aesthetic via tokens in `src/styles.css`:
-
-- **Palette** (oklch): deep crimson red primary, antique gold accent, off-white/cream background, near-black ink
-- **Typography**: bold display serif/slab for headings (e.g., Abril Fatface or Bebas Neue), clean sans for body
-- **Motifs**: subtle star/hammer-sickle SVG accents, heavy rules, poster-style headings in uppercase with tight tracking
-- Card surfaces with cream background, red borders, gold dividers
-
-All colors via semantic tokens — no raw hex in components.
-
-## 4. Technical Notes
-
-- Server enforcement via Postgres SECURITY DEFINER function (not edge functions) — atomic, transactional, race-safe
-- Nickname lookup case-insensitive (store original case, compare lowercased)
-- Numeric type for balances to handle 1.5x multiplier cleanly
-- Realtime subscription on `transactions` table for live ledger updates
-- Auth state listener at root invalidates router + query cache on sign-in/out
-
-## 5. Out of Scope (confirm if needed)
-
-- Password reset flow
-- Nickname editing after first set
-- Pagination on ledger (will show latest 50)
-- Leaderboard / top comrades view add this
-- Social providers (Google/Apple) — email/password only unless requested add this
-  &nbsp;
+Approve and I'll ship it in one pass (migration → RPCs → routes → mobile nav).

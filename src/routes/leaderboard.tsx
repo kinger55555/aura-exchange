@@ -15,6 +15,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MobileNav } from "@/components/MobileNav";
+import { IdeaButton } from "@/components/IdeaButton";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({ meta: [{ title: "Leaderboard — Absolute Communism" }] }),
@@ -85,13 +87,13 @@ function LeaderboardPage() {
     if (!reportTarget) return;
     setReporting(true);
     try {
-      const { error } = await supabase.rpc("report_comrade", {
-        p_recipient: reportTarget,
-        p_amount: reportAmount,
-        p_reason: reportReason.trim() || undefined,
+      const { error } = await supabase.rpc("submit_report", {
+        p_type: "player_report",
+        p_target_nickname: reportTarget,
+        p_message: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} denounced. You both lost ${reportAmount} Aura.`);
+      toast.success(`Comrade ${reportTarget} reported. Filing fee: 0.5 Aura.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);
@@ -119,11 +121,6 @@ function LeaderboardPage() {
             <Link to="/leaderboard">
               <Button variant="ghost" className="text-primary-foreground bg-primary-foreground/10 uppercase tracking-wider text-xs">
                 Leaderboard
-              </Button>
-            </Link>
-            <Link to="/games">
-              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
-                Games
               </Button>
             </Link>
           </nav>
@@ -254,6 +251,8 @@ function LeaderboardPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <IdeaButton />
+      <MobileNav />
     </main>
   );
 }

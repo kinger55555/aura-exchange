@@ -17,6 +17,8 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MobileNav } from "@/components/MobileNav";
+import { IdeaButton } from "@/components/IdeaButton";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
@@ -65,6 +67,17 @@ function Dashboard() {
       navigate({ to: "/" });
       return;
     }
+    // Ban gate
+    (async () => {
+      const { data } = await supabase
+        .from("bans")
+        .select("id,expires_at")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1);
+      const active = (data ?? []).find((b: any) => !b.expires_at || new Date(b.expires_at) > new Date());
+      if (active) navigate({ to: "/banned" });
+    })();
   }, [loading, user, navigate]);
 
   async function loadProfile() {
@@ -180,13 +193,13 @@ function Dashboard() {
     if (!reportTarget) return;
     setReporting(true);
     try {
-      const { error } = await supabase.rpc("report_comrade", {
-        p_recipient: reportTarget,
-        p_amount: reportAmount,
-        p_reason: reportReason.trim() || undefined,
+      const { error } = await supabase.rpc("submit_report", {
+        p_type: "player_report",
+        p_target_nickname: reportTarget,
+        p_message: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} denounced. You both lost ${reportAmount} Aura.`);
+      toast.success(`Comrade ${reportTarget} reported. Filing fee: 0.5 Aura.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);
@@ -226,11 +239,6 @@ function Dashboard() {
             <Link to="/leaderboard">
               <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
                 Leaderboard
-              </Button>
-            </Link>
-            <Link to="/games">
-              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
-                Games
               </Button>
             </Link>
             <Button
@@ -470,6 +478,8 @@ function Dashboard() {
           </form>
         </DialogContent>
       </Dialog>
+      <IdeaButton />
+      <MobileNav />
     </main>
   );
 }
