@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      bans: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          issued_by: string
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_by: string
+          reason?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_by?: string
+          reason?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bans_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_sessions: {
         Row: {
           aura_quota: number
@@ -187,6 +232,215 @@ export type Database = {
         }
         Relationships: []
       }
+      report_actions: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          report_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          report_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_actions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_actions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          priority: number
+          queue: string
+          reporter_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          target_user_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          priority?: number
+          queue: string
+          reporter_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          target_user_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          priority?: number
+          queue?: string
+          reporter_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          target_user_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_checkins: {
+        Row: {
+          created_at: string
+          day: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          hired_at: string
+          hired_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary: number
+        }
+        Insert: {
+          hired_at?: string
+          hired_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary?: number
+        }
+        Update: {
+          hired_at?: string
+          hired_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["staff_role"]
+          user_id?: string
+          weekly_salary?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_roles_hired_by_fkey"
+            columns: ["hired_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_warnings: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_warnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           created_at: string
@@ -286,6 +540,34 @@ export type Database = {
         }
         Returns: undefined
       }
+      act_on_report: {
+        Args: {
+          p_action: string
+          p_amount?: number
+          p_notes?: string
+          p_report_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          payload: Json
+          priority: number
+          queue: string
+          reporter_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          target_user_id: string | null
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_party: {
         Args: { p_aura_bet: number; p_name: string; p_password?: string }
         Returns: {
@@ -305,6 +587,13 @@ export type Database = {
         }
       }
       ensure_tickets: { Args: never; Returns: undefined }
+      fire_staff: {
+        Args: {
+          p_role: Database["public"]["Enums"]["staff_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_or_create_game_week: {
         Args: never
         Returns: {
@@ -319,6 +608,57 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "game_weeks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["staff_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      highest_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["staff_role"]
+      }
+      hire_staff: {
+        Args: {
+          p_nickname: string
+          p_role: Database["public"]["Enums"]["staff_role"]
+          p_salary: number
+        }
+        Returns: {
+          hired_at: string
+          hired_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_roles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_banned: { Args: { _user_id: string }; Returns: boolean }
+      issue_ban: {
+        Args: { p_days?: number; p_reason: string; p_user_id: string }
+        Returns: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          issued_by: string
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bans"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -338,6 +678,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      lift_ban: { Args: { p_ban_id: string }; Returns: undefined }
+      my_quota: { Args: never; Returns: Json }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
@@ -429,6 +771,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      run_weekly_payroll: { Args: never; Returns: undefined }
       send_aura: {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
         Returns: {
@@ -459,6 +802,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      staff_checkin: { Args: never; Returns: Json }
       start_game_session: {
         Args: { p_party_id: string }
         Returns: {
@@ -478,9 +822,37 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      submit_report: {
+        Args: {
+          p_extra?: Json
+          p_message?: string
+          p_target_nickname?: string
+          p_type: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          payload: Json
+          priority: number
+          queue: string
+          reporter_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          target_user_id: string | null
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
-      [_ in never]: never
+      staff_role: "owner" | "admin" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -607,6 +979,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      staff_role: ["owner", "admin", "moderator"],
+    },
   },
 } as const
