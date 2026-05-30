@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
+import { StaffBadgeFor } from "@/components/StaffBadge";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({ meta: [{ title: "Leaderboard — Absolute Communism" }] }),
@@ -168,12 +169,13 @@ function LeaderboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-mono font-bold text-primary truncate">
                         <Link
-                          to="/dashboard"
-                          search={{ to: r.nickname ?? undefined }}
+                          to="/profile/$nickname"
+                          params={{ nickname: r.nickname ?? "" }}
                           className="hover:underline hover:text-secondary transition-colors"
                         >
                           {r.nickname}
                         </Link>
+                        <StaffBadgeFor userId={r.id} className="ml-1" />
                         {isMe && (
                           <span className="ml-2 text-[10px] uppercase tracking-widest bg-secondary text-secondary-foreground px-1.5 py-0.5">
                             You

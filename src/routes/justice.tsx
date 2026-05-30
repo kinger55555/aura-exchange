@@ -166,12 +166,7 @@ function JusticePage() {
   return (
     <main className="min-h-screen pb-24 bg-background">
       <header className="bg-primary text-primary-foreground border-b-4 border-secondary px-4 py-3 sticky top-0 z-20">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-xl uppercase tracking-wider">Justice — {role}</h1>
-          {role === "owner" && (
-            <Button size="sm" variant="secondary" onClick={() => navigate({ to: "/admin" })}>Staff</Button>
-          )}
-        </div>
+        <h1 className="font-display text-xl uppercase tracking-wider">Justice — {role}</h1>
         {quota && (
           <p className="text-[10px] uppercase tracking-widest mt-1 opacity-90">
             Weekly quota: {quota.points} / {quota.goal} pts · {quota.actions} actions · {quota.checkins} check-ins
