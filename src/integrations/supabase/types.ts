@@ -586,6 +586,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_my_account: { Args: never; Returns: undefined }
       ensure_tickets: { Args: never; Returns: undefined }
       fire_staff: {
         Args: {
@@ -680,6 +681,27 @@ export type Database = {
       }
       lift_ban: { Args: { p_ban_id: string }; Returns: undefined }
       my_quota: { Args: never; Returns: Json }
+      promote_user: {
+        Args: {
+          p_role: Database["public"]["Enums"]["staff_role"]
+          p_salary?: number
+          p_user_id: string
+        }
+        Returns: {
+          hired_at: string
+          hired_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_roles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
@@ -798,6 +820,23 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_owner_salary: {
+        Args: { p_salary: number }
+        Returns: {
+          hired_at: string
+          hired_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_roles"
           isOneToOne: true
           isSetofReturn: false
         }
