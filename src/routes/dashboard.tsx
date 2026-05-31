@@ -439,6 +439,43 @@ function Dashboard() {
 
       {/* Change nickname dialog */}
       <Dialog open={nickOpen} onOpenChange={setNickOpen}>
+        {null}
+      </Dialog>
+      {/* Burn dialog */}
+      <Dialog open={burnOpen} onOpenChange={setBurnOpen}>
+        <DialogContent className="border-2 border-destructive">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive text-2xl">🔥 Burn Aura</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={burnAura} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Choose how much Aura to keep. The rest is burned into the State Bank — once it holds at least 1 full Aura, it's seized by the Owner.
+            </p>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Keep (Aura)</Label>
+              <Input
+                required
+                type="number"
+                min={0}
+                max={profile.aura_balance}
+                step={0.01}
+                value={burnKeep}
+                onChange={(e) => setBurnKeep(Number(e.target.value))}
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive font-mono"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Current: <span className="font-mono">{profile.aura_balance}</span> · Will burn: <span className="font-mono text-destructive">{Math.max(profile.aura_balance - burnKeep, 0).toFixed(8)}</span>
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={burning} variant="destructive" className="uppercase tracking-widest font-display">
+                {burning ? "Burning…" : "Burn It"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={nickOpen} onOpenChange={setNickOpen}>
         <DialogContent className="border-2 border-primary">
           <DialogHeader>
             <DialogTitle className="font-display uppercase text-primary text-2xl">Change Identity</DialogTitle>
