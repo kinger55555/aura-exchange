@@ -12,7 +12,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { StaffBadge, useStaffRole } from "@/components/StaffBadge";
 import { getRank, formatAura } from "@/lib/rank";
-import { Crown, Shield, AlertTriangle, ArrowLeft, Send } from "lucide-react";
+import { Crown, Shield, AlertTriangle, ArrowLeft, Send, Gavel, Ban } from "lucide-react";
 
 export const Route = createFileRoute("/profile/$nickname")({
   head: () => ({ meta: [{ title: "Profile — Absolute Communism" }] }),
@@ -33,6 +33,12 @@ function ProfilePage() {
   const [reason, setReason] = useState("");
   const [salary, setSalary] = useState(10);
   const [acting, setActing] = useState(false);
+  const [punishOpen, setPunishOpen] = useState(false);
+  const [punishAmt, setPunishAmt] = useState(1);
+  const [punishReason, setPunishReason] = useState("");
+  const [banOpen, setBanOpen] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [banDays, setBanDays] = useState(1);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -86,6 +92,36 @@ function ProfilePage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function punish() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("staff_punish", {
+        p_user_id: target.id,
+        p_amount: punishAmt,
+        p_reason: punishReason.trim() || "Punished from profile",
+      });
+      if (error) throw error;
+      toast.success(`Deducted ${punishAmt} Aura from ${target.nickname}`);
+      setPunishOpen(false); setPunishReason(""); setPunishAmt(1);
+      load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+
+  async function issueBan() {
+    if (!target) return;
+    const days = myRole === "owner" && banDays === 0 ? undefined : banDays;
+    try {
+      const { error } = await supabase.rpc("issue_ban", {
+        p_user_id: target.id,
+        p_reason: banReason.trim() || "Justice served",
+        p_days: days,
+      });
+      if (error) throw error;
+      toast.success("Ban issued");
+      setBanOpen(false); setBanReason("");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   if (busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
   if (!target) return (
     <main className="min-h-screen flex items-center justify-center p-6">
@@ -102,6 +138,9 @@ function ProfilePage() {
   const canPromoteMod = (myRole === "owner" || myRole === "admin") && targetRole === null && !isSelf;
   const canDemoteAdmin = myRole === "owner" && targetRole === "admin";
   const canDemoteMod = (myRole === "owner" || myRole === "admin") && targetRole === "moderator";
+  const canPunish = !isSelf && (myRole === "moderator" || myRole === "admin" || myRole === "owner");
+  const canBan = !isSelf && (myRole === "admin" || myRole === "owner");
+  const punishCap = myRole === "moderator" ? 10 : myRole === "admin" ? 50 : 100;
 
   return (
     <main className="min-h-screen pb-32 bg-background">
@@ -166,6 +205,22 @@ function ProfilePage() {
                 </Button>
               )}
             </div>
+
+            {(canPunish || canBan) && (
+              <div className="border-t-2 border-dashed border-destructive/40 pt-3 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-destructive font-bold">Staff Justice</p>
+                {canPunish && (
+                  <Button onClick={() => setPunishOpen(true)} variant="destructive" className="w-full uppercase tracking-widest">
+                    <Gavel className="size-4 mr-2" /> Deduct Aura (cap {punishCap})
+                  </Button>
+                )}
+                {canBan && (
+                  <Button onClick={() => setBanOpen(true)} variant="destructive" className="w-full uppercase tracking-widest">
+                    <Ban className="size-4 mr-2" /> Issue Ban
+                  </Button>
+                )}
+              </div>
+            )}
           </section>
         )}
 
@@ -190,6 +245,42 @@ function ProfilePage() {
               >
                 File Report
               </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={punishOpen} onOpenChange={setPunishOpen}>
+        <DialogContent className="border-2 border-destructive max-w-[92vw]">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive">Punish {target.nickname}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label className="uppercase tracking-wider text-xs">Aura to deduct (cap {punishCap})</Label>
+            <Input type="number" min={0.1} max={punishCap} step={0.1} value={punishAmt} onChange={(e) => setPunishAmt(Number(e.target.value))} />
+            <Label className="uppercase tracking-wider text-xs">Reason</Label>
+            <Textarea value={punishReason} onChange={(e) => setPunishReason(e.target.value)} maxLength={300} rows={3} />
+            <DialogFooter>
+              <Button onClick={punish} variant="destructive" className="uppercase tracking-widest font-display">Deduct</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={banOpen} onOpenChange={setBanOpen}>
+        <DialogContent className="border-2 border-destructive max-w-[92vw]">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive">Ban {target.nickname}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label className="uppercase tracking-wider text-xs">
+              Days {myRole === "owner" ? "(0 = permanent)" : "(1-7)"}
+            </Label>
+            <Input type="number" min={myRole === "owner" ? 0 : 1} max={myRole === "admin" ? 7 : 365} value={banDays} onChange={(e) => setBanDays(Number(e.target.value))} />
+            <Label className="uppercase tracking-wider text-xs">Reason</Label>
+            <Textarea value={banReason} onChange={(e) => setBanReason(e.target.value)} maxLength={300} rows={3} />
+            <DialogFooter>
+              <Button onClick={issueBan} variant="destructive" className="uppercase tracking-widest font-display">Issue Ban</Button>
             </DialogFooter>
           </div>
         </DialogContent>
