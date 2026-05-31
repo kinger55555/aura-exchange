@@ -377,13 +377,17 @@ function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="py-3 flex flex-wrap items-baseline gap-x-2 gap-y-1"
                 >
-                  <span className="font-mono font-bold text-primary">{t.sender?.nickname ?? "?"}</span>
+                  <span className="font-mono font-bold text-primary inline-flex items-center gap-1">
+                    {t.sender?.nickname ?? "?"}
+                  </span>
                   <span className="text-muted-foreground text-sm">sent</span>
                   <span className="font-display text-secondary-foreground bg-secondary px-1.5">
                     {formatAura(t.amount_sent)}
                   </span>
                   <span className="text-muted-foreground text-sm">→</span>
-                  <span className="font-mono font-bold text-primary">{t.receiver?.nickname ?? "?"}</span>
+                  <span className="font-mono font-bold text-primary inline-flex items-center gap-1">
+                    {t.receiver?.nickname ?? "?"}
+                  </span>
                   <span className="text-muted-foreground text-sm">received</span>
                   <span className={`font-display ${t.amount_received < 0 ? "text-destructive" : "text-primary"}`}>
                     {t.amount_received < 0 ? "" : "+"}{formatAura(t.amount_received)}
@@ -397,6 +401,14 @@ function Dashboard() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString()}
                     </span>
+                    {t.sender?.nickname && t.sender.nickname !== profile.nickname && (
+                      <button
+                        onClick={() => setReportTarget(t.sender!.nickname)}
+                        className="text-[10px] uppercase tracking-widest text-destructive border border-destructive/40 px-1.5 py-0.5 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        Denounce
+                      </button>
+                    )}
                   </span>
                 </motion.li>
               ))}
