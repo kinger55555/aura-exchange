@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
-import { StaffBadgeFor } from "@/components/StaffBadge";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
