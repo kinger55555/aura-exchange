@@ -29,6 +29,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number };
 type Ledger = {
   id: string;
   amount_sent: number;
@@ -59,6 +60,7 @@ function Dashboard() {
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
+  const [rankInfo, setRankInfo] = useState<Rank | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -92,6 +94,16 @@ function Dashboard() {
       return;
     }
     if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance) });
+    if (data) {
+      const { data: r } = await supabase
+        .from("profiles")
+        .select("current_rank")
+        .eq("id", user.id)
+        .maybeSingle();
+      const cr = (r as any)?.current_rank ?? 1;
+      const { data: ri } = await supabase.rpc("get_rank_info", { p_rank: cr });
+      if (ri) setRankInfo(ri as Rank);
+    }
   }
 
   async function loadQuota() {
@@ -255,7 +267,7 @@ function Dashboard() {
             {profile.nickname}
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
-            {rank.title}
+            {rankInfo?.name ?? rank.title}
           </div>
           <button
             onClick={() => { setNewNick(profile.nickname ?? ""); setNickOpen(true); }}
@@ -364,13 +376,17 @@ function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="py-3 flex flex-wrap items-baseline gap-x-2 gap-y-1"
                 >
-                  <span className="font-mono font-bold text-primary">{t.sender?.nickname ?? "?"}</span>
+                  <span className="font-mono font-bold text-primary inline-flex items-center gap-1">
+                    {t.sender?.nickname ?? "?"}
+                  </span>
                   <span className="text-muted-foreground text-sm">sent</span>
                   <span className="font-display text-secondary-foreground bg-secondary px-1.5">
                     {formatAura(t.amount_sent)}
                   </span>
                   <span className="text-muted-foreground text-sm">→</span>
-                  <span className="font-mono font-bold text-primary">{t.receiver?.nickname ?? "?"}</span>
+                  <span className="font-mono font-bold text-primary inline-flex items-center gap-1">
+                    {t.receiver?.nickname ?? "?"}
+                  </span>
                   <span className="text-muted-foreground text-sm">received</span>
                   <span className={`font-display ${t.amount_received < 0 ? "text-destructive" : "text-primary"}`}>
                     {t.amount_received < 0 ? "" : "+"}{formatAura(t.amount_received)}
@@ -384,6 +400,14 @@ function Dashboard() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString()}
                     </span>
+                    {t.sender?.nickname && t.sender.nickname !== profile.nickname && (
+                      <button
+                        onClick={() => setReportTarget(t.sender!.nickname)}
+                        className="text-[10px] uppercase tracking-widest text-destructive border border-destructive/40 px-1.5 py-0.5 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        Denounce
+                      </button>
+                    )}
                   </span>
                 </motion.li>
               ))}

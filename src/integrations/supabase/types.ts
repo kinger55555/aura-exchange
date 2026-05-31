@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      aura_bank: {
+        Row: {
+          balance: number
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bans: {
         Row: {
           created_at: string
@@ -215,20 +233,59 @@ export type Database = {
         Row: {
           aura_balance: number
           created_at: string
+          current_rank: number
           id: string
           nickname: string | null
         }
         Insert: {
           aura_balance?: number
           created_at?: string
+          current_rank?: number
           id: string
           nickname?: string | null
         }
         Update: {
           aura_balance?: number
           created_at?: string
+          current_rank?: number
           id?: string
           nickname?: string | null
+        }
+        Relationships: []
+      }
+      ranks: {
+        Row: {
+          max_aura: number
+          max_send: number
+          multiplier: number
+          name: string
+          rank: number
+          salary: number
+          super_tickets: number
+          tickets: number
+          upgrade_cost: number
+        }
+        Insert: {
+          max_aura: number
+          max_send: number
+          multiplier: number
+          name: string
+          rank: number
+          salary: number
+          super_tickets: number
+          tickets: number
+          upgrade_cost: number
+        }
+        Update: {
+          max_aura?: number
+          max_send?: number
+          multiplier?: number
+          name?: string
+          rank?: number
+          salary?: number
+          super_tickets?: number
+          tickets?: number
+          upgrade_cost?: number
         }
         Relationships: []
       }
@@ -613,6 +670,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_rank_info: {
+        Args: { p_rank: number }
+        Returns: {
+          max_aura: number
+          max_send: number
+          multiplier: number
+          name: string
+          rank: number
+          salary: number
+          super_tickets: number
+          tickets: number
+          upgrade_cost: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ranks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["staff_role"]
@@ -702,11 +779,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      purchase_rank: {
+        Args: never
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
           aura_balance: number
           created_at: string
+          current_rank: number
           id: string
           nickname: string | null
         }
@@ -799,6 +893,7 @@ export type Database = {
         Returns: {
           aura_balance: number
           created_at: string
+          current_rank: number
           id: string
           nickname: string | null
         }
@@ -814,6 +909,7 @@ export type Database = {
         Returns: {
           aura_balance: number
           created_at: string
+          current_rank: number
           id: string
           nickname: string | null
         }
