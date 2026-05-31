@@ -955,6 +955,22 @@ export type Database = {
         }
       }
       staff_checkin: { Args: never; Returns: Json }
+      staff_punish: {
+        Args: { p_amount: number; p_reason?: string; p_user_id: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       start_game_session: {
         Args: { p_party_id: string }
         Returns: {
