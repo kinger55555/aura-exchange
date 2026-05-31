@@ -296,6 +296,15 @@ function Dashboard() {
             <p className="text-xs text-muted-foreground mt-2">
               Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (10%)
             </p>
+            <button
+              onClick={() => {
+                setBurnKeep(Math.floor(profile.aura_balance * 100) / 100);
+                setBurnOpen(true);
+              }}
+              className="mt-3 text-xs uppercase tracking-widest text-destructive border border-destructive/40 px-2 py-1 hover:bg-destructive hover:text-destructive-foreground"
+            >
+              🔥 Burn Aura
+            </button>
           </div>
         </section>
 
@@ -303,7 +312,7 @@ function Dashboard() {
         <section className="lg:col-span-2 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)] relative overflow-visible">
           <h3 className="font-display text-2xl uppercase text-primary">Reward a Comrade</h3>
           <p className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-            Sent Aura is multiplied by ×1.5 for the receiver
+            Sent Aura is multiplied by ×{(rankInfo?.multiplier ?? 1).toFixed(1)} for the receiver (your rank bonus)
           </p>
 
           <form onSubmit={sendAura} className="mt-6 grid sm:grid-cols-2 gap-4">
