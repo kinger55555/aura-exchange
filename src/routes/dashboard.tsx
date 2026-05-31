@@ -439,7 +439,6 @@ function Dashboard() {
 
       {/* Change nickname dialog */}
       <Dialog open={nickOpen} onOpenChange={setNickOpen}>
-        {null}
       </Dialog>
       {/* Burn dialog */}
       <Dialog open={burnOpen} onOpenChange={setBurnOpen}>
