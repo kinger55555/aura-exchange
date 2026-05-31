@@ -437,9 +437,6 @@ function Dashboard() {
         </section>
       </div>
 
-      {/* Change nickname dialog */}
-      <Dialog open={nickOpen} onOpenChange={setNickOpen}>
-      </Dialog>
       {/* Burn dialog */}
       <Dialog open={burnOpen} onOpenChange={setBurnOpen}>
         <DialogContent className="border-2 border-destructive">
