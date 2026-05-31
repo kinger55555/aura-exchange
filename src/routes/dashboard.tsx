@@ -29,7 +29,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
-type Rank = { rank: number; name: string; max_send: number; max_aura: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number };
 type Ledger = {
   id: string;
   amount_sent: number;
@@ -61,6 +61,9 @@ function Dashboard() {
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
   const [rankInfo, setRankInfo] = useState<Rank | null>(null);
+  const [burnOpen, setBurnOpen] = useState(false);
+  const [burnKeep, setBurnKeep] = useState<number>(0);
+  const [burning, setBurning] = useState(false);
 
   // Auth gate
   useEffect(() => {
@@ -163,7 +166,8 @@ function Dashboard() {
         p_message: message.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`+${(amount * 1.5).toFixed(2)} Aura delivered to ${recipient}`);
+      const mult = rankInfo?.multiplier ?? 1;
+      toast.success(`+${(amount * mult).toFixed(2)} Aura delivered to ${recipient}`);
       setRecipient("");
       setMessage("");
       setAmount(1);
@@ -175,6 +179,23 @@ function Dashboard() {
       toast.error(err.message ?? "The State denies this transaction");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function burnAura(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setBurning(true);
+    try {
+      const { error } = await supabase.rpc("burn_aura", { p_keep: burnKeep });
+      if (error) throw error;
+      toast.success(`Burned to ${burnKeep.toFixed(2)} Aura. Dust to the State Bank.`);
+      setBurnOpen(false);
+      loadProfile();
+    } catch (err: any) {
+      toast.error(err.message ?? "The State rejected your purge");
+    } finally {
+      setBurning(false);
     }
   }
 
@@ -275,6 +296,15 @@ function Dashboard() {
             <p className="text-xs text-muted-foreground mt-2">
               Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (10%)
             </p>
+            <button
+              onClick={() => {
+                setBurnKeep(Math.floor(profile.aura_balance * 100) / 100);
+                setBurnOpen(true);
+              }}
+              className="mt-3 text-xs uppercase tracking-widest text-destructive border border-destructive/40 px-2 py-1 hover:bg-destructive hover:text-destructive-foreground"
+            >
+              🔥 Burn Aura
+            </button>
           </div>
         </section>
 
@@ -282,7 +312,7 @@ function Dashboard() {
         <section className="lg:col-span-2 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)] relative overflow-visible">
           <h3 className="font-display text-2xl uppercase text-primary">Reward a Comrade</h3>
           <p className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-            Sent Aura is multiplied by ×1.5 for the receiver
+            Sent Aura is multiplied by ×{(rankInfo?.multiplier ?? 1).toFixed(1)} for the receiver (your rank bonus)
           </p>
 
           <form onSubmit={sendAura} className="mt-6 grid sm:grid-cols-2 gap-4">
@@ -407,7 +437,40 @@ function Dashboard() {
         </section>
       </div>
 
-      {/* Change nickname dialog */}
+      {/* Burn dialog */}
+      <Dialog open={burnOpen} onOpenChange={setBurnOpen}>
+        <DialogContent className="border-2 border-destructive">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase text-destructive text-2xl">🔥 Burn Aura</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={burnAura} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Choose how much Aura to keep. The rest is burned into the State Bank — once it holds at least 1 full Aura, it's seized by the Owner.
+            </p>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Keep (Aura)</Label>
+              <Input
+                required
+                type="number"
+                min={0}
+                max={profile.aura_balance}
+                step={0.01}
+                value={burnKeep}
+                onChange={(e) => setBurnKeep(Number(e.target.value))}
+                className="mt-1 border-2 border-destructive/30 focus:border-destructive font-mono"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Current: <span className="font-mono">{profile.aura_balance}</span> · Will burn: <span className="font-mono text-destructive">{Math.max(profile.aura_balance - burnKeep, 0).toFixed(8)}</span>
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={burning} variant="destructive" className="uppercase tracking-widest font-display">
+                {burning ? "Burning…" : "Burn It"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <Dialog open={nickOpen} onOpenChange={setNickOpen}>
         <DialogContent className="border-2 border-primary">
           <DialogHeader>

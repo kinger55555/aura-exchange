@@ -625,6 +625,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      burn_aura: {
+        Args: { p_keep: number }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_party: {
         Args: { p_aura_bet: number; p_name: string; p_password?: string }
         Returns: {
