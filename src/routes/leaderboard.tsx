@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getRank, formatAura } from "@/lib/rank";
+import { formatAura } from "@/lib/rank";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +24,13 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { id: string; nickname: string | null; aura_balance: number };
+type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number };
 
 function LeaderboardPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
+  const [rankNames, setRankNames] = useState<Record<number, string>>({});
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(true);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
@@ -44,13 +45,17 @@ function LeaderboardPage() {
       return;
     }
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, nickname, aura_balance")
-        .not("nickname", "is", null)
-        .order("aura_balance", { ascending: false })
-        .limit(500);
-      if (data) setRows(data.map((r) => ({ ...r, aura_balance: Number(r.aura_balance) })));
+      const [{ data }, { data: rk }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, nickname, aura_balance, current_rank")
+          .not("nickname", "is", null)
+          .order("aura_balance", { ascending: false })
+          .limit(500),
+        supabase.from("ranks").select("rank, name"),
+      ]);
+      if (data) setRows(data.map((r: any) => ({ ...r, aura_balance: Number(r.aura_balance), current_rank: r.current_rank ?? 1 })));
+      if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
       setBusy(false);
     })();
 
@@ -64,7 +69,7 @@ function LeaderboardPage() {
             prev
               .map((r) =>
                 r.id === payload.new.id
-                  ? { ...r, aura_balance: Number(payload.new.aura_balance), nickname: payload.new.nickname }
+                  ? { ...r, aura_balance: Number(payload.new.aura_balance), nickname: payload.new.nickname, current_rank: payload.new.current_rank ?? r.current_rank }
                   : r
               )
               .sort((a, b) => b.aura_balance - a.aura_balance)
@@ -155,7 +160,7 @@ function LeaderboardPage() {
           ) : (
             <ul className="divide-y-2 divide-dashed divide-primary/20">
               {filtered.map((r) => {
-                const rank = getRank(r.aura_balance);
+                const rankTitle = rankNames[r.current_rank] ?? `Rank ${r.current_rank}`;
                 const globalIdx = rows.findIndex((x) => x.id === r.id) + 1;
                 const isMe = r.id === user?.id;
                 return (
@@ -182,8 +187,8 @@ function LeaderboardPage() {
                           </span>
                         )}
                       </p>
-                      <p className={`text-xs uppercase tracking-widest ${rank.tone}`}>
-                        {rank.title}
+                      <p className="text-xs uppercase tracking-widest text-primary">
+                        {rankTitle}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
