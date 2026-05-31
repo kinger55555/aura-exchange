@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Trophy, ShieldAlert, LogOut, User } from "lucide-react";
+import { Home, Trophy, ShieldAlert, LogOut, User, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,6 +25,7 @@ export function MobileNav() {
 
   const items = [
     { to: "/dashboard" as const, label: "Home", icon: Home },
+    { to: "/shop" as const, label: "Shop", icon: ShoppingBag },
     { to: "/leaderboard" as const, label: "Ranks", icon: Trophy },
     { to: "/settings" as const, label: "Me", icon: User },
     ...(isStaff ? [{ to: "/justice" as const, label: "Justice", icon: ShieldAlert }] : []),
