@@ -29,7 +29,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
-type Rank = { rank: number; name: string; max_send: number; max_aura: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number };
 type Ledger = {
   id: string;
   amount_sent: number;
@@ -61,6 +61,9 @@ function Dashboard() {
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
   const [rankInfo, setRankInfo] = useState<Rank | null>(null);
+  const [burnOpen, setBurnOpen] = useState(false);
+  const [burnKeep, setBurnKeep] = useState<number>(0);
+  const [burning, setBurning] = useState(false);
 
   // Auth gate
   useEffect(() => {
@@ -163,7 +166,8 @@ function Dashboard() {
         p_message: message.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`+${(amount * 1.5).toFixed(2)} Aura delivered to ${recipient}`);
+      const mult = rankInfo?.multiplier ?? 1;
+      toast.success(`+${(amount * mult).toFixed(2)} Aura delivered to ${recipient}`);
       setRecipient("");
       setMessage("");
       setAmount(1);
@@ -175,6 +179,23 @@ function Dashboard() {
       toast.error(err.message ?? "The State denies this transaction");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function burnAura(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setBurning(true);
+    try {
+      const { error } = await supabase.rpc("burn_aura", { p_keep: burnKeep });
+      if (error) throw error;
+      toast.success(`Burned to ${burnKeep.toFixed(2)} Aura. Dust to the State Bank.`);
+      setBurnOpen(false);
+      loadProfile();
+    } catch (err: any) {
+      toast.error(err.message ?? "The State rejected your purge");
+    } finally {
+      setBurning(false);
     }
   }
 
