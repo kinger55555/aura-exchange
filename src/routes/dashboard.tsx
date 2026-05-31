@@ -61,7 +61,7 @@ function Dashboard() {
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
-  const [rank, setRankInfo] = useState<Rank | null>(null);
+  const [rankInfo, setRankInfo] = useState<Rank | null>(null);
 
   // Auth gate
   useEffect(() => {
