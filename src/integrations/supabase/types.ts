@@ -757,6 +757,23 @@ export type Database = {
         }
       }
       lift_ban: { Args: { p_ban_id: string }; Returns: undefined }
+      list_staff_full: {
+        Args: never
+        Returns: {
+          hired_at: string
+          hired_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+          weekly_salary: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "staff_roles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       my_quota: { Args: never; Returns: Json }
       promote_user: {
         Args: {
