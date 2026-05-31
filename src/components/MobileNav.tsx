@@ -1,13 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Trophy, ShieldAlert, LogOut, User, ShoppingBag } from "lucide-react";
+import { Home, Trophy, ShieldAlert, LogOut, User, ShoppingBag, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export function MobileNav() {
   const { user } = useAuth();
   const { location } = useRouterState();
   const [isStaff, setIsStaff] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -32,73 +34,49 @@ export function MobileNav() {
   ];
 
   return (
-    <>
-      {/* Desktop top nav */}
-      <nav className="hidden md:block sticky top-0 z-40 bg-primary text-primary-foreground border-b-4 border-secondary">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link to="/dashboard" className="font-black tracking-widest text-secondary text-lg">
-            AURA
-          </Link>
-          <ul className="flex items-center gap-1">
-            {items.map(({ to, label, icon: Icon }) => {
-              const active = location.pathname === to;
-              return (
-                <li key={to}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <button
+          aria-label="Open menu"
+          className="fixed top-3 right-3 z-50 size-11 flex items-center justify-center bg-primary text-primary-foreground border-2 border-secondary shadow-[3px_3px_0_0_var(--secondary)] hover:bg-primary/90"
+        >
+          <Menu className="size-5" />
+        </button>
+      </SheetTrigger>
+      <SheetContent side="right" className="bg-primary text-primary-foreground border-l-4 border-secondary w-72 p-0">
+        <SheetHeader className="px-6 py-5 border-b-2 border-secondary/40">
+          <SheetTitle className="text-secondary uppercase tracking-widest text-lg">The State</SheetTitle>
+        </SheetHeader>
+        <ul className="flex flex-col p-3 gap-1">
+          {items.map(({ to, label, icon: Icon }) => {
+            const active = location.pathname === to;
+            return (
+              <li key={to}>
+                <SheetClose asChild>
                   <Link
                     to={to}
-                    className={`flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider rounded ${
+                    className={`flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wider rounded ${
                       active ? "bg-primary-foreground/15 text-secondary" : "hover:bg-primary-foreground/10"
                     }`}
                   >
-                    <Icon className="size-4" />
+                    <Icon className="size-5" />
                     {label}
                   </Link>
-                </li>
-              );
-            })}
-            <li>
-              <button
-                onClick={signOut}
-                className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider rounded hover:bg-primary-foreground/10"
-              >
-                <LogOut className="size-4" />
-                Desert
-              </button>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
-      {/* Mobile bottom nav */}
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-primary text-primary-foreground border-t-4 border-secondary safe-bottom md:hidden">
-      <ul className="flex items-stretch">
-        {items.map(({ to, label, icon: Icon }) => {
-          const active = location.pathname === to;
-          return (
-            <li key={to} className="flex-1">
-              <Link
-                to={to}
-                className={`flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] uppercase tracking-wider ${
-                  active ? "bg-primary-foreground/15 text-secondary" : ""
-                }`}
-              >
-                <Icon className="size-5" />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-        <li className="flex-1">
-          <button
-            onClick={signOut}
-            className="w-full h-full flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] uppercase tracking-wider"
-          >
-            <LogOut className="size-5" />
-            Desert
-          </button>
-        </li>
-      </ul>
-    </nav>
-    </>
+                </SheetClose>
+              </li>
+            );
+          })}
+          <li className="mt-2 pt-2 border-t-2 border-secondary/40">
+            <button
+              onClick={signOut}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wider rounded hover:bg-primary-foreground/10"
+            >
+              <LogOut className="size-5" />
+              Desert
+            </button>
+          </li>
+        </ul>
+      </SheetContent>
+    </Sheet>
   );
 }
