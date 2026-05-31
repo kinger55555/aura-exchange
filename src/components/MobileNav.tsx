@@ -32,6 +32,44 @@ export function MobileNav() {
   ];
 
   return (
+    <>
+      {/* Desktop top nav */}
+      <nav className="hidden md:block sticky top-0 z-40 bg-primary text-primary-foreground border-b-4 border-secondary">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <Link to="/dashboard" className="font-black tracking-widest text-secondary text-lg">
+            AURA
+          </Link>
+          <ul className="flex items-center gap-1">
+            {items.map(({ to, label, icon: Icon }) => {
+              const active = location.pathname === to;
+              return (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    className={`flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider rounded ${
+                      active ? "bg-primary-foreground/15 text-secondary" : "hover:bg-primary-foreground/10"
+                    }`}
+                  >
+                    <Icon className="size-4" />
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+            <li>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider rounded hover:bg-primary-foreground/10"
+              >
+                <LogOut className="size-4" />
+                Desert
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      {/* Mobile bottom nav */}
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-primary text-primary-foreground border-t-4 border-secondary safe-bottom md:hidden">
       <ul className="flex items-stretch">
         {items.map(({ to, label, icon: Icon }) => {
@@ -61,5 +99,6 @@ export function MobileNav() {
         </li>
       </ul>
     </nav>
+    </>
   );
 }
