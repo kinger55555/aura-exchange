@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
+import { StaffBadgeFor } from "@/components/StaffBadge";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number };
 type Ledger = {
   id: string;
   amount_sent: number;
@@ -59,6 +61,7 @@ function Dashboard() {
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
+  const [rank, setRankInfo] = useState<Rank | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -92,6 +95,16 @@ function Dashboard() {
       return;
     }
     if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance) });
+    if (data) {
+      const { data: r } = await supabase
+        .from("profiles")
+        .select("current_rank")
+        .eq("id", user.id)
+        .maybeSingle();
+      const cr = (r as any)?.current_rank ?? 1;
+      const { data: ri } = await supabase.rpc("get_rank_info", { p_rank: cr });
+      if (ri) setRankInfo(ri as Rank);
+    }
   }
 
   async function loadQuota() {
@@ -255,7 +268,7 @@ function Dashboard() {
             {profile.nickname}
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
-            {rank.title}
+            {rankInfo?.name ?? rank.title}
           </div>
           <button
             onClick={() => { setNewNick(profile.nickname ?? ""); setNickOpen(true); }}
