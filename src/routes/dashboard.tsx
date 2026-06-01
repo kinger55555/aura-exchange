@@ -226,13 +226,13 @@ function Dashboard() {
     if (!reportTarget) return;
     setReporting(true);
     try {
-      const { error } = await supabase.rpc("report_comrade", {
+      const { error } = await supabase.rpc("denounce_comrade", {
         p_recipient: reportTarget,
         p_amount: reportAmount,
         p_reason: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} denounced. ${reportAmount} Aura burned from both.`);
+      toast.success(`⚡ ${reportTarget} denounced. ${reportAmount} Aura burned from both.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);
