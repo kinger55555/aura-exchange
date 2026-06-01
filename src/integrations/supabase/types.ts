@@ -660,6 +660,22 @@ export type Database = {
         }
       }
       delete_my_account: { Args: never; Returns: undefined }
+      denounce_comrade: {
+        Args: { p_amount: number; p_reason?: string; p_recipient: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          id: string
+          nickname: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ensure_tickets: { Args: never; Returns: undefined }
       fire_staff: {
         Args: {
