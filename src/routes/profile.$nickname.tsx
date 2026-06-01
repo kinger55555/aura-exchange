@@ -78,7 +78,7 @@ function ProfilePage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
-  async function submitDenouncement(type: "player_report" | "mod_report") {
+  async function submitReport(type: "player_report" | "mod_report") {
     if (!target) return;
     try {
       const { error } = await supabase.rpc("submit_report", {
@@ -87,7 +87,7 @@ function ProfilePage() {
         p_message: reason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(type === "mod_report" ? "Denouncement sent to High Council" : "Denouncement filed (0.5 Aura fee)");
+      toast.success(type === "mod_report" ? "Report sent to High Council" : "Report filed (0.5 Aura fee)");
       setReportOpen(false); setReason("");
     } catch (e: any) { toast.error(e.message); }
   }
@@ -197,11 +197,11 @@ function ProfilePage() {
             <div className="border-t-2 border-dashed border-primary/30 pt-3">
               {targetRole === "moderator" ? (
                 <Button onClick={() => setReportOpen(true)} variant="outline" className="w-full uppercase tracking-widest text-destructive border-destructive">
-                  <Shield className="size-4 mr-2" /> Denounce this Moderator
+                  <Shield className="size-4 mr-2" /> Report this Moderator
                 </Button>
               ) : (
                 <Button onClick={() => setReportOpen(true)} variant="outline" className="w-full uppercase tracking-widest text-destructive border-destructive">
-                  <AlertTriangle className="size-4 mr-2" /> Denounce (0.5 Aura)
+                  <AlertTriangle className="size-4 mr-2" /> Report (0.5 Aura)
                 </Button>
               )}
             </div>
@@ -232,18 +232,18 @@ function ProfilePage() {
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent className="border-2 border-destructive max-w-[92vw]">
           <DialogHeader>
-            <DialogTitle className="font-display uppercase text-destructive">Denounce {target.nickname}</DialogTitle>
+            <DialogTitle className="font-display uppercase text-destructive">Report {target.nickname}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Label className="uppercase tracking-wider text-xs">Reason</Label>
             <Textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} rows={3} required />
             <DialogFooter>
               <Button
-                onClick={() => submitDenouncement(targetRole === "moderator" ? "mod_report" : "player_report")}
+                onClick={() => submitReport(targetRole === "moderator" ? "mod_report" : "player_report")}
                 variant="destructive"
                 className="uppercase tracking-widest font-display"
               >
-                File Denouncement
+                File Report
               </Button>
             </DialogFooter>
           </div>
