@@ -221,7 +221,7 @@ function Dashboard() {
     }
   }
 
-  async function submitReport(e: React.FormEvent) {
+  async function submitDenouncement(e: React.FormEvent) {
     e.preventDefault();
     if (!reportTarget) return;
     setReporting(true);
@@ -232,7 +232,7 @@ function Dashboard() {
         p_message: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} reported. Filing fee: 0.5 Aura.`);
+      toast.success(`Comrade ${reportTarget} denounced. Filing fee: 0.5 Aura.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);
@@ -498,7 +498,7 @@ function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Report dialog */}
+      {/* Denounce dialog */}
       <Dialog open={!!reportTarget} onOpenChange={(o) => !o && setReportTarget(null)}>
         <DialogContent className="border-2 border-destructive">
           <DialogHeader>
@@ -506,9 +506,9 @@ function Dashboard() {
               Denounce {reportTarget}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={submitReport} className="space-y-4">
+          <form onSubmit={submitDenouncement} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Filing a report costs Aura. Both you and the accused will lose the same amount.
+              Filing a denouncement costs Aura. Both you and the accused will lose the same amount.
               The State demands sacrifice for justice.
             </p>
             <div>
