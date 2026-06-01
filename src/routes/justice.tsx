@@ -217,7 +217,7 @@ function JusticePage() {
           {active && (
             <div className="space-y-3 text-sm">
               <div>
-                <span className="text-muted-foreground">Reporter:</span> <span className="font-mono">{active.reporter?.nickname ?? "—"}</span>
+                <span className="text-muted-foreground">Denouncer:</span> <span className="font-mono">{active.reporter?.nickname ?? "—"}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Target:</span> <span className="font-mono">{active.target?.nickname ?? "—"}</span>
