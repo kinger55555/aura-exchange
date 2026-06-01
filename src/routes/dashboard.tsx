@@ -221,7 +221,7 @@ function Dashboard() {
     }
   }
 
-  async function submitReport(e: React.FormEvent) {
+  async function submitDenouncement(e: React.FormEvent) {
     e.preventDefault();
     if (!reportTarget) return;
     setReporting(true);
@@ -232,7 +232,7 @@ function Dashboard() {
         p_message: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} reported. Filing fee: 0.5 Aura.`);
+      toast.success(`Comrade ${reportTarget} denounced. Filing fee: 0.5 Aura.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);

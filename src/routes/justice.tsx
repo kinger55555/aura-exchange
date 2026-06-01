@@ -153,8 +153,8 @@ function JusticePage() {
   }
 
   const labelMap: Record<string, string> = {
-    player_report: "Player report",
-    mod_report: "Mod report",
+    player_report: "Player denouncement",
+    mod_report: "Mod denouncement",
     auraguard: "AuraGuard",
     aura_appeal: "Aura penalty appeal",
     ban_appeal: "Ban appeal",
@@ -195,7 +195,7 @@ function JusticePage() {
                 <span className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
               </div>
               <div className="mt-2 text-sm">
-                <span className="text-muted-foreground">Reporter:</span> <span className="font-mono">{r.reporter?.nickname ?? "—"}</span>
+                <span className="text-muted-foreground">Denouncer:</span> <span className="font-mono">{r.reporter?.nickname ?? "—"}</span>
                 {r.target?.nickname && (<>
                   {" "}· <span className="text-muted-foreground">Target:</span> <span className="font-mono">{r.target.nickname}</span>
                 </>)}

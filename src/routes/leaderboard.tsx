@@ -213,7 +213,7 @@ function LeaderboardPage() {
         </section>
       </div>
 
-      {/* Report dialog */}
+      {/* Denounce dialog */}
       <Dialog open={!!reportTarget} onOpenChange={(o) => !o && setReportTarget(null)}>
         <DialogContent className="border-2 border-destructive">
           <DialogHeader>
@@ -221,9 +221,9 @@ function LeaderboardPage() {
               Denounce {reportTarget}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={submitReport} className="space-y-4">
+          <form onSubmit={submitDenouncement} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Filing a report costs Aura. Both you and the accused will lose the same amount.
+              Filing a denouncement costs Aura. Both you and the accused will lose the same amount.
               The State demands sacrifice for justice.
             </p>
             <div>
