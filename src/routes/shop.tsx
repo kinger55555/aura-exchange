@@ -48,6 +48,7 @@ function ShopPage() {
   const [balance, setBalance] = useState(0);
   const [current, setCurrent] = useState<Rank | null>(null);
   const [next, setNext] = useState<Rank | null>(null);
+  const [nextNext, setNextNext] = useState<Rank | null>(null);
   const [busy, setBusy] = useState(true);
   const [buying, setBuying] = useState(false);
 
@@ -61,12 +62,14 @@ function ShopPage() {
     if (!p) return;
     setBalance(Number((p as any).aura_balance));
     const cr = (p as any).current_rank ?? 1;
-    const [{ data: c }, { data: n }] = await Promise.all([
+    const [{ data: c }, { data: n }, { data: nn }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
       supabase.rpc("get_rank_info", { p_rank: cr + 1 }),
+      supabase.rpc("get_rank_info", { p_rank: cr + 2 }),
     ]);
     setCurrent(c as Rank);
     setNext(n as Rank);
+    setNextNext(nn as Rank);
     setBusy(false);
   }, [user]);
 
@@ -130,6 +133,7 @@ function ShopPage() {
           <div className="mt-4 space-y-0">
             <StatRow icon={Coins} label="Max Aura"        from={formatAura(current.max_aura)}    to={formatAura(next.max_aura)} />
             <StatRow icon={Send}  label="Max Send"        from={formatAura(current.max_send)}    to={formatAura(next.max_send)} />
+            <StatRow icon={Send}  label="Daily Send Cap"  from={formatAura(Number(next.upgrade_cost) / 10)} to={formatAura(Number(nextNext?.upgrade_cost ?? 0) / 10)} />
             <StatRow icon={Ticket} label="Daily Tickets"  from={current.tickets}                 to={next.tickets} />
             <StatRow icon={Sparkles} label="Multiplier"   from={`${Number(current.multiplier).toFixed(1)}x`} to={`${Number(next.multiplier).toFixed(1)}x`} />
             <StatRow icon={Coins} label="Weekly Salary"   from={formatAura(current.salary)}      to={formatAura(next.salary)} />
