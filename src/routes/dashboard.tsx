@@ -330,17 +330,19 @@ function Dashboard() {
               />
             </div>
             <div>
-              <Label className="uppercase tracking-wider text-xs">Amount (max 10)</Label>
+              <Label className="uppercase tracking-wider text-xs">
+                Amount (max {Math.min(Number(rankInfo?.max_send ?? 0), remaining).toFixed(2)})
+              </Label>
               <Input
                 required
                 type="number"
                 min={0.01}
-                max={10}
+                max={Math.min(Number(rankInfo?.max_send ?? 0), remaining)}
                 step={0.01}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 onBlur={() => {
-                  const maxSend = Math.min(10, remaining, Math.max(profile.aura_balance, 0));
+                  const maxSend = Math.min(Number(rankInfo?.max_send ?? 0), remaining, Math.max(profile.aura_balance, 0));
                   if (amount > maxSend) setAmount(Math.max(Math.min(amount, maxSend), 0.01));
                 }}
                 className="mt-1 border-2 border-primary/30 focus:border-primary"
