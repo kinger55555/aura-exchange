@@ -336,6 +336,10 @@ function Dashboard() {
                 step={0.01}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
+                onBlur={() => {
+                  const maxSend = Math.min(10, remaining, Math.max(profile.aura_balance, 0));
+                  if (amount > maxSend) setAmount(Math.max(Math.min(amount, maxSend), 0.01));
+                }}
                 className="mt-1 border-2 border-primary/30 focus:border-primary"
               />
             </div>
