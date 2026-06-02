@@ -93,13 +93,13 @@ function LeaderboardPage() {
     if (!reportTarget) return;
     setReporting(true);
     try {
-      const { error } = await supabase.rpc("submit_report", {
-        p_type: "player_report",
-        p_target_nickname: reportTarget,
-        p_message: reportReason.trim() || undefined,
+      const { error } = await supabase.rpc("denounce_comrade", {
+        p_recipient: reportTarget,
+        p_amount: reportAmount,
+        p_reason: reportReason.trim() || undefined,
       });
       if (error) throw error;
-      toast.success(`Comrade ${reportTarget} reported. Filing fee: 0.5 Aura.`);
+      toast.success(`⚡ ${reportTarget} denounced. ${reportAmount} Aura burned from both.`);
       setReportTarget(null);
       setReportReason("");
       setReportAmount(1);
