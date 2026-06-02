@@ -29,7 +29,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
-type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number; upgrade_cost: number };
 type Ledger = {
   id: string;
   amount_sent: number;
@@ -61,6 +61,7 @@ function Dashboard() {
   const [reporting, setReporting] = useState(false);
   const [sentLast24h, setSentLast24h] = useState<number>(0);
   const [rankInfo, setRankInfo] = useState<Rank | null>(null);
+  const [nextRankInfo, setNextRankInfo] = useState<Rank | null>(null);
   const [burnOpen, setBurnOpen] = useState(false);
   const [burnKeep, setBurnKeep] = useState<number>(0);
   const [burning, setBurning] = useState(false);
@@ -106,6 +107,8 @@ function Dashboard() {
       const cr = (r as any)?.current_rank ?? 1;
       const { data: ri } = await supabase.rpc("get_rank_info", { p_rank: cr });
       if (ri) setRankInfo(ri as Rank);
+      const { data: rn } = await supabase.rpc("get_rank_info", { p_rank: cr + 1 });
+      if (rn) setNextRankInfo(rn as Rank);
     }
   }
 
@@ -255,8 +258,8 @@ function Dashboard() {
   }
 
   const rank = getRank(profile.aura_balance);
-  // Cap is 10% of balance at the start of the 24h window (current + already sent)
-  const dailyCap = (profile.aura_balance + sentLast24h) * 0.1;
+  // Daily cap = cost to reach the next rank / 10
+  const dailyCap = Number(nextRankInfo?.upgrade_cost ?? 0) / 10;
   const remaining = Math.max(dailyCap - sentLast24h, 0);
 
   return (
@@ -294,7 +297,7 @@ function Dashboard() {
               {formatAura(profile.aura_balance)}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (10%)
+              Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (next-rank cost ÷ 10)
             </p>
             <button
               onClick={() => {
