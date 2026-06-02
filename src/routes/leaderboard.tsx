@@ -45,7 +45,11 @@ function LeaderboardPage() {
       return;
     }
     (async () => {
-      const [{ data }, { data: rk }] = await Promise.all([
+      const [
+        { data },
+        { data: rk },
+        { data: bansData },
+      ] = await Promise.all([
         supabase
           .from("profiles")
           .select("id, nickname, aura_balance, current_rank")
@@ -53,8 +57,10 @@ function LeaderboardPage() {
           .order("aura_balance", { ascending: false })
           .limit(500),
         supabase.from("ranks").select("rank, name"),
+        supabase.from("bans").select("user_id").eq("status", "active"),
       ]);
-      if (data) setRows(data.map((r: any) => ({ ...r, aura_balance: Number(r.aura_balance), current_rank: r.current_rank ?? 1 })));
+      const bannedIds = new Set((bansData ?? []).map((b: any) => b.user_id));
+      if (data) setRows(data.map((r: any) => ({ ...r, aura_balance: Number(r.aura_balance), current_rank: r.current_rank ?? 1 })).filter((r: any) => !bannedIds.has(r.id)));
       if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
       setBusy(false);
     })();
