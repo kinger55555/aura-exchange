@@ -297,7 +297,7 @@ function Dashboard() {
               {formatAura(profile.aura_balance)}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining (next-rank cost ÷ 10)
+              Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining
             </p>
             <button
               onClick={() => {
