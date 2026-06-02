@@ -124,18 +124,6 @@ function LeaderboardPage() {
             <span className="text-secondary text-3xl">★</span>
             <span className="font-display text-2xl uppercase tracking-wider">Absolute Communism</span>
           </Link>
-          <nav className="flex gap-2">
-            <Link to="/dashboard">
-              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 uppercase tracking-wider text-xs">
-                Dashboard
-              </Button>
-            </Link>
-            <Link to="/leaderboard">
-              <Button variant="ghost" className="text-primary-foreground bg-primary-foreground/10 uppercase tracking-wider text-xs">
-                Leaderboard
-              </Button>
-            </Link>
-          </nav>
         </div>
       </header>
 
