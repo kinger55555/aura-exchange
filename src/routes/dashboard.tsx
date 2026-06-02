@@ -29,7 +29,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type Profile = { id: string; nickname: string | null; aura_balance: number };
-type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number };
+type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number; upgrade_cost: number };
 type Ledger = {
   id: string;
   amount_sent: number;
