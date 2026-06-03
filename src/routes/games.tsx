@@ -208,6 +208,15 @@ function GamesPage() {
     loadAll();
   }
 
+  async function kickAllMembers() {
+    if (!myParty) return;
+    if (!confirm("Remove everyone except you from the party?")) return;
+    const { error } = await supabase.rpc("kick_all_members", { p_party_id: myParty.id });
+    if (error) return toast.error(error.message);
+    toast.success("All comrades removed");
+    loadAll();
+  }
+
   async function startSession() {
     if (!myParty) return;
     const { error } = await supabase.rpc("start_game_session", { p_party_id: myParty.id });
