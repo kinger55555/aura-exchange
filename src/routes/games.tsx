@@ -281,6 +281,16 @@ function GamesPage() {
                   <Users className="size-3 text-muted-foreground" />
                   {m.nickname ?? "?"}
                   {m.user_id === myParty.owner_id && <span className="text-secondary">★</span>}
+                  {isOwner && m.user_id !== user!.id && (
+                    <button
+                      type="button"
+                      onClick={() => kickMember(m.user_id)}
+                      className="ml-auto text-destructive hover:text-destructive/80"
+                      title="Remove comrade"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
