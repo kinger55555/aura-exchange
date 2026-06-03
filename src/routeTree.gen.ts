@@ -15,6 +15,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as JusticeRouteImport } from './routes/justice'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BannedRouteImport } from './routes/banned'
@@ -50,6 +51,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
 const JusticeRoute = JusticeRouteImport.update({
   id: '/justice',
   path: '/justice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/banned': typeof BannedRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/games': typeof GamesRoute
   '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/banned': typeof BannedRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/games': typeof GamesRoute
   '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/banned': typeof BannedRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/games': typeof GamesRoute
   '/justice': typeof JusticeRoute
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/forgot-password'
+    | '/games'
     | '/justice'
     | '/leaderboard'
     | '/onboarding'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/forgot-password'
+    | '/games'
     | '/justice'
     | '/leaderboard'
     | '/onboarding'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/forgot-password'
+    | '/games'
     | '/justice'
     | '/leaderboard'
     | '/onboarding'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   BannedRoute: typeof BannedRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  GamesRoute: typeof GamesRoute
   JusticeRoute: typeof JusticeRoute
   LeaderboardRoute: typeof LeaderboardRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -230,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JusticeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   BannedRoute: BannedRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  GamesRoute: GamesRoute,
   JusticeRoute: JusticeRoute,
   LeaderboardRoute: LeaderboardRoute,
   OnboardingRoute: OnboardingRoute,
@@ -292,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
