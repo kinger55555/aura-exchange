@@ -94,6 +94,20 @@ function ShopPage() {
     }
   }
 
+  async function buyTicket(kind: "regular" | "special") {
+    setBuying(true);
+    try {
+      const { error } = await supabase.rpc("buy_ticket", { p_kind: kind });
+      if (error) throw error;
+      toast.success(kind === "regular" ? "Ticket acquired" : "Special ticket acquired");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The State refuses");
+    } finally {
+      setBuying(false);
+    }
+  }
+
   if (loading || busy || !current || !next) {
     return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading shop…</p></main>;
   }
@@ -158,6 +172,31 @@ function ShopPage() {
         <p className="text-xs text-muted-foreground text-center px-4">
           Tickets are granted daily and salaries paid weekly once the Games tab returns. The State remembers.
         </p>
+
+        <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
+          <h2 className="font-display text-lg uppercase text-primary mb-2">Tickets</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            Spend Aura for an extra shift ticket. Regular tickets start games. Special tickets swap which minigame your party plays.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              disabled={buying || balance < 5}
+              onClick={() => buyTicket("regular")}
+              className="h-14 bg-primary text-primary-foreground uppercase tracking-widest font-display flex flex-col gap-0"
+            >
+              <span className="flex items-center gap-1"><Ticket className="size-4" /> Regular</span>
+              <span className="text-xs">5 Aura</span>
+            </Button>
+            <Button
+              disabled={buying || balance < 100}
+              onClick={() => buyTicket("special")}
+              className="h-14 bg-secondary text-secondary-foreground uppercase tracking-widest font-display flex flex-col gap-0"
+            >
+              <span className="flex items-center gap-1"><Star className="size-4" /> Special</span>
+              <span className="text-xs">100 Aura</span>
+            </Button>
+          </div>
+        </section>
       </div>
 
       <IdeaButton />
