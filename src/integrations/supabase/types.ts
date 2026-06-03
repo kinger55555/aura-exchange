@@ -152,8 +152,10 @@ export type Database = {
         Row: {
           aura_bet: number
           created_at: string
+          current_game: string | null
           game_week_id: string
           id: string
+          max_players: number | null
           name: string
           owner_id: string
           password: string | null
@@ -161,8 +163,10 @@ export type Database = {
         Insert: {
           aura_bet?: number
           created_at?: string
+          current_game?: string | null
           game_week_id: string
           id?: string
+          max_players?: number | null
           name: string
           owner_id: string
           password?: string | null
@@ -170,8 +174,10 @@ export type Database = {
         Update: {
           aura_bet?: number
           created_at?: string
+          current_game?: string | null
           game_week_id?: string
           id?: string
+          max_players?: number | null
           name?: string
           owner_id?: string
           password?: string | null
@@ -235,6 +241,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         Insert: {
@@ -242,6 +250,8 @@ export type Database = {
           created_at?: string
           current_rank?: number
           id: string
+          last_daily_ticket_at?: string | null
+          last_special_ticket_at?: string | null
           nickname?: string | null
         }
         Update: {
@@ -249,6 +259,8 @@ export type Database = {
           created_at?: string
           current_rank?: number
           id?: string
+          last_daily_ticket_at?: string | null
+          last_special_ticket_at?: string | null
           nickname?: string | null
         }
         Relationships: []
@@ -503,6 +515,7 @@ export type Database = {
           created_at: string
           game_week_id: string
           id: string
+          kind: string
           used_at: string | null
           user_id: string
         }
@@ -510,6 +523,7 @@ export type Database = {
           created_at?: string
           game_week_id: string
           id?: string
+          kind?: string
           used_at?: string | null
           user_id: string
         }
@@ -517,6 +531,7 @@ export type Database = {
           created_at?: string
           game_week_id?: string
           id?: string
+          kind?: string
           used_at?: string | null
           user_id?: string
         }
@@ -597,6 +612,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      _user_active_party: { Args: { p_uid: string }; Returns: string }
       act_on_report: {
         Args: {
           p_action: string
@@ -632,6 +648,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -641,24 +659,54 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_party: {
-        Args: { p_aura_bet: number; p_name: string; p_password?: string }
-        Returns: {
-          aura_bet: number
-          created_at: string
-          game_week_id: string
-          id: string
-          name: string
-          owner_id: string
-          password: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "parties"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      buy_ticket: { Args: { p_kind: string }; Returns: undefined }
+      claim_tickets: { Args: never; Returns: Json }
+      create_party:
+        | {
+            Args: { p_aura_bet: number; p_name: string; p_password?: string }
+            Returns: {
+              aura_bet: number
+              created_at: string
+              current_game: string | null
+              game_week_id: string
+              id: string
+              max_players: number | null
+              name: string
+              owner_id: string
+              password: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "parties"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_aura_bet: number
+              p_max_players?: number
+              p_name: string
+              p_password?: string
+            }
+            Returns: {
+              aura_bet: number
+              created_at: string
+              current_game: string | null
+              game_week_id: string
+              id: string
+              max_players: number | null
+              name: string
+              owner_id: string
+              password: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "parties"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       delete_my_account: { Args: never; Returns: undefined }
       denounce_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
@@ -667,6 +715,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -676,7 +726,27 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      destroy_party: { Args: { p_party_id: string }; Returns: undefined }
       ensure_tickets: { Args: never; Returns: undefined }
+      finalize_assembly: {
+        Args: { p_session_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          state: Json
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fire_staff: {
         Args: {
           p_role: Database["public"]["Enums"]["staff_role"]
@@ -788,6 +858,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      leave_party: { Args: { p_party_id: string }; Returns: undefined }
       lift_ban: { Args: { p_ban_id: string }; Returns: undefined }
       list_staff_full: {
         Args: never
@@ -835,6 +906,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -851,6 +924,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -944,6 +1019,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -960,6 +1037,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -994,6 +1073,8 @@ export type Database = {
           created_at: string
           current_rank: number
           id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
           nickname: string | null
         }
         SetofOptions: {
@@ -1005,6 +1086,25 @@ export type Database = {
       }
       start_game_session: {
         Args: { p_party_id: string }
+        Returns: {
+          aura_quota: number
+          created_at: string
+          game_type: string
+          id: string
+          party_id: string
+          result_data: Json | null
+          state: Json
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "game_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_assembly_clicks: {
+        Args: { p_clicks: number; p_session_id: string }
         Returns: {
           aura_quota: number
           created_at: string
@@ -1049,6 +1149,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      swap_party_game: {
+        Args: { p_game_type: string; p_party_id: string }
+        Returns: undefined
       }
     }
     Enums: {
