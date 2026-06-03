@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -208,6 +208,15 @@ function GamesPage() {
     loadAll();
   }
 
+  async function kickAllMembers() {
+    if (!myParty) return;
+    if (!confirm("Remove everyone except you from the party?")) return;
+    const { error } = await supabase.rpc("kick_all_members", { p_party_id: myParty.id });
+    if (error) return toast.error(error.message);
+    toast.success("All comrades removed");
+    loadAll();
+  }
+
   async function startSession() {
     if (!myParty) return;
     const { error } = await supabase.rpc("start_game_session", { p_party_id: myParty.id });
@@ -264,9 +273,14 @@ function GamesPage() {
               </div>
               <div className="flex flex-col gap-2">
                 {isOwner ? (
-                  <Button onClick={destroy} variant="destructive" size="sm" className="uppercase tracking-widest">
-                    <Trash2 className="size-4 mr-1" /> Destroy
-                  </Button>
+                  <>
+                    <Button onClick={destroy} variant="destructive" size="sm" className="uppercase tracking-widest">
+                      <Trash2 className="size-4 mr-1" /> Destroy
+                    </Button>
+                    <Button onClick={kickAllMembers} variant="outline" size="sm" className="uppercase tracking-widest text-destructive border-destructive hover:bg-destructive/10">
+                      <UserX className="size-4 mr-1" /> Kick All
+                    </Button>
+                  </>
                 ) : (
                   <Button onClick={leave} variant="outline" size="sm" className="uppercase tracking-widest">
                     <LogOut className="size-4 mr-1" /> Leave

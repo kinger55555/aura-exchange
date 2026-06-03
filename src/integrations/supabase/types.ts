@@ -858,6 +858,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      kick_all_members: { Args: { p_party_id: string }; Returns: undefined }
       kick_member: {
         Args: { p_party_id: string; p_user_id: string }
         Returns: undefined
