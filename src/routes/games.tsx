@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -199,6 +199,15 @@ function GamesPage() {
     loadAll();
   }
 
+  async function kickMember(userId: string) {
+    if (!myParty) return;
+    if (!confirm("Remove this comrade from the party?")) return;
+    const { error } = await supabase.rpc("kick_member", { p_party_id: myParty.id, p_user_id: userId });
+    if (error) return toast.error(error.message);
+    toast.success("Comrade removed");
+    loadAll();
+  }
+
   async function startSession() {
     if (!myParty) return;
     const { error } = await supabase.rpc("start_game_session", { p_party_id: myParty.id });
@@ -272,6 +281,16 @@ function GamesPage() {
                   <Users className="size-3 text-muted-foreground" />
                   {m.nickname ?? "?"}
                   {m.user_id === myParty.owner_id && <span className="text-secondary">★</span>}
+                  {isOwner && m.user_id !== user!.id && (
+                    <button
+                      type="button"
+                      onClick={() => kickMember(m.user_id)}
+                      className="ml-auto text-destructive hover:text-destructive/80"
+                      title="Remove comrade"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

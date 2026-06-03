@@ -858,6 +858,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      kick_member: {
+        Args: { p_party_id: string; p_user_id: string }
+        Returns: undefined
+      }
       leave_party: { Args: { p_party_id: string }; Returns: undefined }
       lift_ban: { Args: { p_ban_id: string }; Returns: undefined }
       list_staff_full: {
