@@ -273,9 +273,14 @@ function GamesPage() {
               </div>
               <div className="flex flex-col gap-2">
                 {isOwner ? (
-                  <Button onClick={destroy} variant="destructive" size="sm" className="uppercase tracking-widest">
-                    <Trash2 className="size-4 mr-1" /> Destroy
-                  </Button>
+                  <>
+                    <Button onClick={destroy} variant="destructive" size="sm" className="uppercase tracking-widest">
+                      <Trash2 className="size-4 mr-1" /> Destroy
+                    </Button>
+                    <Button onClick={kickAllMembers} variant="outline" size="sm" className="uppercase tracking-widest text-destructive border-destructive hover:bg-destructive/10">
+                      <UserX className="size-4 mr-1" /> Kick All
+                    </Button>
+                  </>
                 ) : (
                   <Button onClick={leave} variant="outline" size="sm" className="uppercase tracking-widest">
                     <LogOut className="size-4 mr-1" /> Leave
