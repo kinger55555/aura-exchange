@@ -32,6 +32,7 @@ function AdminPage() {
   const [busy, setBusy] = useState(true);
   const [newNick, setNewNick] = useState("");
   const [newSalary, setNewSalary] = useState(10);
+  const [testNick, setTestNick] = useState("");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -78,6 +79,27 @@ function AdminPage() {
     } catch (err: any) { toast.error(err.message ?? "Action denied"); }
   }
 
+  async function resetAllAura() {
+    if (!confirm("Reset EVERY comrade's Aura to 10? This cannot be undone.")) return;
+    try {
+      const { error } = await supabase.rpc("reset_all_aura");
+      if (error) throw error;
+      toast.success("All Aura reset to 10");
+      load();
+    } catch (err: any) { toast.error(err.message ?? "Reset denied"); }
+  }
+
+  async function toggleTestMode(enable: boolean) {
+    const nick = testNick.trim();
+    if (!nick) { toast.error("Enter a nickname"); return; }
+    try {
+      const { error } = await supabase.rpc("set_test_mode", { p_nickname: nick, p_enabled: enable });
+      if (error) throw error;
+      toast.success(enable ? `${nick} → test mode (∞ Aura)` : `${nick} → normal (balance restored)`);
+      setTestNick("");
+    } catch (err: any) { toast.error(err.message ?? "Action denied"); }
+  }
+
   if (loading || busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
   if (!myRole || (myRole !== "owner" && myRole !== "admin")) {
     return (
@@ -100,6 +122,21 @@ function AdminPage() {
       </header>
 
       <div className="max-w-2xl mx-auto p-4 space-y-4">
+        {myRole === "owner" && (
+          <section className="border-2 border-destructive bg-card p-4 shadow-[4px_4px_0_0_var(--destructive)] space-y-3">
+            <h2 className="font-display text-lg uppercase text-destructive">Owner tools</h2>
+            <Button onClick={resetAllAura} variant="destructive" className="w-full font-display uppercase tracking-widest">Reset all Aura to 10</Button>
+            <div className="pt-2 border-t-2 border-dashed border-destructive/30 space-y-2">
+              <Label className="uppercase tracking-wider text-xs">Test mode (∞ Aura, restored on exit)</Label>
+              <Input value={testNick} onChange={(e) => setTestNick(e.target.value)} placeholder="nickname" className="font-mono" />
+              <div className="flex gap-2">
+                <Button onClick={() => toggleTestMode(true)} className="flex-1 bg-primary text-primary-foreground font-display uppercase tracking-widest">Enter</Button>
+                <Button onClick={() => toggleTestMode(false)} variant="outline" className="flex-1 font-display uppercase tracking-widest">Exit</Button>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-3">
           <h2 className="font-display text-lg uppercase text-primary">Hire {canHireRole}</h2>
           <div>
