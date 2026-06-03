@@ -199,6 +199,15 @@ function GamesPage() {
     loadAll();
   }
 
+  async function kickMember(userId: string) {
+    if (!myParty) return;
+    if (!confirm("Remove this comrade from the party?")) return;
+    const { error } = await supabase.rpc("kick_member", { p_party_id: myParty.id, p_user_id: userId });
+    if (error) return toast.error(error.message);
+    toast.success("Comrade removed");
+    loadAll();
+  }
+
   async function startSession() {
     if (!myParty) return;
     const { error } = await supabase.rpc("start_game_session", { p_party_id: myParty.id });
