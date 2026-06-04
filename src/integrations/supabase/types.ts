@@ -947,6 +947,28 @@ export type Database = {
         }
       }
       my_quota: { Args: never; Returns: Json }
+      owner_rank_up: {
+        Args: { p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       promote_user: {
         Args: {
           p_role: Database["public"]["Enums"]["staff_role"]
@@ -1176,6 +1198,28 @@ export type Database = {
       }
       set_test_mode: {
         Args: { p_enabled: boolean; p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_user_aura: {
+        Args: { p_amount: number; p_nickname: string }
         Returns: {
           aura_balance: number
           created_at: string
