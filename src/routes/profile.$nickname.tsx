@@ -193,6 +193,11 @@ function ProfilePage() {
           <div className="mt-4 border-t-2 border-dashed border-primary/30 pt-3">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">Aura Balance</p>
             <p className="font-display text-4xl text-primary mt-1">{formatAura(target.aura_balance)}</p>
+            {target.gray_aura > 0 && (
+              <p className="font-display text-xl text-muted-foreground mt-1">
+                {formatAura(target.gray_aura)} <span className="text-xs uppercase tracking-widest">Gray</span>
+              </p>
+            )}
           </div>
         </section>
 
@@ -255,6 +260,25 @@ function ProfilePage() {
                     <Ban className="size-4 mr-2" /> Issue Ban
                   </Button>
                 )}
+              </div>
+            )}
+
+            {myRole === "owner" && !isSelf && (
+              <div className="border-t-2 border-dashed border-secondary/40 pt-3 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-secondary-foreground font-bold">Owner Tools</p>
+                <Label className="uppercase tracking-wider text-xs">Set Aura to</Label>
+                <div className="flex gap-2">
+                  <Input type="number" value={setAuraVal} onChange={(e) => setSetAuraVal(Number(e.target.value))} />
+                  <Button onClick={ownerSetAura} className="bg-secondary text-secondary-foreground uppercase tracking-widest font-display">Set</Button>
+                </div>
+                <Label className="uppercase tracking-wider text-xs">Grant Gray Aura</Label>
+                <div className="flex gap-2">
+                  <Input type="number" value={grayAmt} onChange={(e) => setGrayAmt(Number(e.target.value))} />
+                  <Button onClick={ownerGrantGray} variant="outline" className="uppercase tracking-widest font-display">Grant</Button>
+                </div>
+                <Button onClick={ownerRankUp} className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-display">
+                  <Crown className="size-4 mr-2" /> Rank Up (currently #{target.current_rank})
+                </Button>
               </div>
             )}
           </section>
