@@ -46,6 +46,7 @@ function ShopPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
+  const [gray, setGray] = useState(0);
   const [current, setCurrent] = useState<Rank | null>(null);
   const [next, setNext] = useState<Rank | null>(null);
   const [nextNext, setNextNext] = useState<Rank | null>(null);
@@ -56,11 +57,12 @@ function ShopPage() {
     if (!user) return;
     const { data: p } = await supabase
       .from("profiles")
-      .select("aura_balance, current_rank")
+      .select("aura_balance, gray_aura, current_rank")
       .eq("id", user.id)
       .maybeSingle();
     if (!p) return;
     setBalance(Number((p as any).aura_balance));
+    setGray(Number((p as any).gray_aura ?? 0));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
