@@ -240,28 +240,40 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         Insert: {
           aura_balance?: number
           created_at?: string
           current_rank?: number
+          gray_aura?: number
           id: string
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
+          rank_before_gray?: number | null
+          test_mode?: boolean
+          test_mode_saved_balance?: number | null
         }
         Update: {
           aura_balance?: number
           created_at?: string
           current_rank?: number
+          gray_aura?: number
           id?: string
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
+          rank_before_gray?: number | null
+          test_mode?: boolean
+          test_mode_saved_balance?: number | null
         }
         Relationships: []
       }
@@ -647,10 +659,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -714,10 +730,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -788,6 +808,50 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "ranks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      grant_aura: {
+        Args: { p_amount: number; p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      grant_gray_aura: {
+        Args: { p_amount: number; p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -910,10 +974,36 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      purchase_rank_gray: {
+        Args: never
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -928,10 +1018,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -940,6 +1034,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      reset_all_aura: { Args: never; Returns: undefined }
+      reset_all_gray_aura: { Args: never; Returns: undefined }
       resolve_game: {
         Args: { p_result_data: Json; p_session_id: string; p_status: string }
         Returns: {
@@ -1023,10 +1119,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -1041,10 +1141,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -1070,6 +1174,50 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_test_mode: {
+        Args: { p_enabled: boolean; p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_user_rank: {
+        Args: { p_nickname: string; p_rank: number }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          gray_aura: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       staff_checkin: { Args: never; Returns: Json }
       staff_punish: {
         Args: { p_amount: number; p_reason?: string; p_user_id: string }
@@ -1077,10 +1225,14 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          gray_aura: number
           id: string
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"

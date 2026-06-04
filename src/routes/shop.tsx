@@ -46,6 +46,7 @@ function ShopPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
+  const [gray, setGray] = useState(0);
   const [current, setCurrent] = useState<Rank | null>(null);
   const [next, setNext] = useState<Rank | null>(null);
   const [nextNext, setNextNext] = useState<Rank | null>(null);
@@ -56,11 +57,12 @@ function ShopPage() {
     if (!user) return;
     const { data: p } = await supabase
       .from("profiles")
-      .select("aura_balance, current_rank")
+      .select("aura_balance, gray_aura, current_rank")
       .eq("id", user.id)
       .maybeSingle();
     if (!p) return;
     setBalance(Number((p as any).aura_balance));
+    setGray(Number((p as any).gray_aura ?? 0));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
@@ -86,6 +88,21 @@ function ShopPage() {
       const { error } = await supabase.rpc("purchase_rank");
       if (error) throw error;
       toast.success(`Ascended to ${next.name}`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The State denies your ascension");
+    } finally {
+      setBuying(false);
+    }
+  }
+
+  async function buyGray() {
+    if (!next) return;
+    setBuying(true);
+    try {
+      const { error } = await supabase.rpc("purchase_rank_gray");
+      if (error) throw error;
+      toast.success(`Ascended to ${next.name} (gray)`);
       load();
     } catch (e: any) {
       toast.error(e.message ?? "The State denies your ascension");
@@ -127,6 +144,11 @@ function ShopPage() {
         <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Your Aura</p>
           <p className="font-display text-4xl text-primary">{formatAura(balance)}</p>
+          {gray > 0 && (
+            <p className="font-display text-2xl text-muted-foreground mt-1">
+              {formatAura(gray)} <span className="text-xs uppercase tracking-widest">Gray Aura</span>
+            </p>
+          )}
           <p className="text-xs uppercase tracking-widest text-muted-foreground mt-2">
             Current rank: <span className="text-primary font-bold">{current.name}</span> (#{current.rank})
           </p>
@@ -166,6 +188,14 @@ function ShopPage() {
           >
             <ArrowUp className="size-5 mr-2" />
             {buying ? "Ascending…" : canAfford ? `Buy ${next.name}` : "Insufficient Aura"}
+          </Button>
+          <Button
+            disabled={buying || gray < Number(next.upgrade_cost)}
+            onClick={buyGray}
+            variant="outline"
+            className="w-full mt-2 h-10 uppercase tracking-widest text-xs"
+          >
+            {gray >= Number(next.upgrade_cost) ? `Buy with Gray Aura` : `Need ${formatAura(next.upgrade_cost)} Gray`}
           </Button>
         </section>
 

@@ -66,6 +66,40 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  const [grantNick, setGrantNick] = useState("");
+  const [grantAmt, setGrantAmt] = useState(10);
+  const [grantRank, setGrantRank] = useState(1);
+
+  async function doGrantGray() {
+    try {
+      const { error } = await supabase.rpc("grant_gray_aura", { p_nickname: grantNick.trim(), p_amount: grantAmt });
+      if (error) throw error;
+      toast.success(`Granted ${grantAmt} gray Aura to ${grantNick}`);
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function doGrantAura() {
+    try {
+      const { error } = await supabase.rpc("grant_aura", { p_nickname: grantNick.trim(), p_amount: grantAmt });
+      if (error) throw error;
+      toast.success(`Granted ${grantAmt} Aura to ${grantNick}`);
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function doSetRank() {
+    try {
+      const { error } = await supabase.rpc("set_user_rank", { p_nickname: grantNick.trim(), p_rank: grantRank });
+      if (error) throw error;
+      toast.success(`Set ${grantNick} to rank ${grantRank}`);
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function doResetGray() {
+    if (!confirm("Wipe ALL gray Aura and roll back every rank bought with it?")) return;
+    try {
+      const { error } = await supabase.rpc("reset_all_gray_aura");
+      if (error) throw error;
+      toast.success("Gray Aura purged from the State");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   if (loading || busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
 
   return (
@@ -86,6 +120,32 @@ function SettingsPage() {
             <Input type="number" min={0} max={10000} value={salary} onChange={(e) => setSalary(Number(e.target.value))} />
             <Button onClick={saveSalary} className="w-full bg-secondary text-secondary-foreground font-display uppercase tracking-widest">Save Treasury</Button>
             <Button onClick={() => navigate({ to: "/admin" })} variant="outline" className="w-full uppercase tracking-widest text-xs">Manage Staff Roster</Button>
+          </section>
+        )}
+
+        {(role === "owner" || role === "admin") && (
+          <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-3">
+            <h2 className="font-display text-lg uppercase text-primary">Grant Powers</h2>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Comrade nickname</Label>
+              <Input value={grantNick} onChange={(e) => setGrantNick(e.target.value)} className="font-mono" />
+            </div>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Amount (can be negative)</Label>
+              <Input type="number" value={grantAmt} onChange={(e) => setGrantAmt(Number(e.target.value))} />
+            </div>
+            <Button onClick={doGrantGray} variant="outline" className="w-full uppercase tracking-widest text-xs">Grant Gray Aura</Button>
+            {role === "owner" && (
+              <>
+                <Button onClick={doGrantAura} className="w-full bg-primary text-primary-foreground uppercase tracking-widest text-xs">Grant Real Aura</Button>
+                <div>
+                  <Label className="uppercase tracking-wider text-xs">Set rank (#)</Label>
+                  <Input type="number" min={1} value={grantRank} onChange={(e) => setGrantRank(Number(e.target.value))} />
+                </div>
+                <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
+                <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
+              </>
+            )}
           </section>
         )}
 
