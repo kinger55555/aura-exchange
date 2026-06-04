@@ -25,7 +25,7 @@ function ProfilePage() {
   const { nickname } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number } | null>(null);
+  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number } | null>(null);
   const [myRole, setMyRole] = useState<Role>(null);
   const targetRole = useStaffRole(target?.id);
   const [busy, setBusy] = useState(true);
@@ -39,13 +39,24 @@ function ProfilePage() {
   const [banOpen, setBanOpen] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [banDays, setBanDays] = useState(1);
+  const [setAuraVal, setSetAuraVal] = useState<number>(0);
+  const [grayAmt, setGrayAmt] = useState<number>(10);
 
   const load = useCallback(async () => {
     setBusy(true);
     const { data } = await supabase.from("profiles")
-      .select("id, nickname, aura_balance")
+      .select("id, nickname, aura_balance, gray_aura, current_rank")
       .ilike("nickname", nickname).maybeSingle();
-    if (data) setTarget({ id: data.id, nickname: data.nickname!, aura_balance: Number(data.aura_balance) });
+    if (data) {
+      setTarget({
+        id: data.id,
+        nickname: data.nickname!,
+        aura_balance: Number(data.aura_balance),
+        gray_aura: Number((data as any).gray_aura ?? 0),
+        current_rank: Number((data as any).current_rank ?? 1),
+      });
+      setSetAuraVal(Number(data.aura_balance));
+    }
     if (user) {
       const { data: r } = await supabase.from("staff_roles").select("role").eq("user_id", user.id);
       const ranks = (r ?? []).map((x: any) => x.role);
