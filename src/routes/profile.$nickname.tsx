@@ -133,6 +133,31 @@ function ProfilePage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function ownerSetAura() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("set_user_aura", { p_nickname: target.nickname, p_amount: setAuraVal });
+      if (error) throw error;
+      toast.success(`Aura set to ${setAuraVal}`); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function ownerGrantGray() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("grant_gray_aura", { p_nickname: target.nickname, p_amount: grayAmt });
+      if (error) throw error;
+      toast.success(`Granted ${grayAmt} gray Aura`); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function ownerRankUp() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("owner_rank_up", { p_nickname: target.nickname });
+      if (error) throw error;
+      toast.success("Ascended one rank"); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   if (busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
   if (!target) return (
     <main className="min-h-screen flex items-center justify-center p-6">
