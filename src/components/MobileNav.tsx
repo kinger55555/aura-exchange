@@ -29,7 +29,7 @@ export function MobileNav() {
     { to: "/dashboard" as const, label: "Home", icon: Home },
     { to: "/shop" as const, label: "Shop", icon: ShoppingBag },
     { to: "/games" as const, label: "Games", icon: Gamepad2 },
-    { to: "/leaderboard" as const, label: "Ranks", icon: Trophy },
+    { to: "/leaderboard" as const, label: "Leaderboard", icon: Trophy },
     { to: "/settings" as const, label: "Me", icon: User },
     ...(isStaff ? [{ to: "/justice" as const, label: "Justice", icon: ShieldAlert }] : []),
   ];
