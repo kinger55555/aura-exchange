@@ -90,14 +90,14 @@ function Dashboard() {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("id, nickname, aura_balance")
+      .select("id, nickname, aura_balance, gray_aura")
       .eq("id", user.id)
       .maybeSingle();
     if (data && !data.nickname) {
       navigate({ to: "/onboarding" });
       return;
     }
-    if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance) });
+    if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance), gray_aura: Number((data as any).gray_aura ?? 0) });
     if (data) {
       const { data: r } = await supabase
         .from("profiles")
