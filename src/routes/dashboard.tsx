@@ -296,6 +296,11 @@ function Dashboard() {
             <p className="font-display text-6xl text-primary mt-1">
               {formatAura(profile.aura_balance)}
             </p>
+            {Number(profile.gray_aura ?? 0) > 0 && (
+              <p className="font-display text-2xl text-muted-foreground mt-1">
+                {formatAura(Number(profile.gray_aura))} <span className="text-xs uppercase tracking-widest">Gray Aura</span>
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-2">
               Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining
             </p>
