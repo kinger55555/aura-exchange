@@ -28,7 +28,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
-type Profile = { id: string; nickname: string | null; aura_balance: number };
+type Profile = { id: string; nickname: string | null; aura_balance: number; gray_aura?: number };
 type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number; upgrade_cost: number };
 type Ledger = {
   id: string;
@@ -90,14 +90,14 @@ function Dashboard() {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("id, nickname, aura_balance")
+      .select("id, nickname, aura_balance, gray_aura")
       .eq("id", user.id)
       .maybeSingle();
     if (data && !data.nickname) {
       navigate({ to: "/onboarding" });
       return;
     }
-    if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance) });
+    if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance), gray_aura: Number((data as any).gray_aura ?? 0) });
     if (data) {
       const { data: r } = await supabase
         .from("profiles")
@@ -296,6 +296,11 @@ function Dashboard() {
             <p className="font-display text-6xl text-primary mt-1">
               {formatAura(profile.aura_balance)}
             </p>
+            {Number(profile.gray_aura ?? 0) > 0 && (
+              <p className="font-display text-2xl text-muted-foreground mt-1">
+                {formatAura(Number(profile.gray_aura))} <span className="text-xs uppercase tracking-widest">Gray Aura</span>
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-2">
               Daily quota: <span className="font-bold">{remaining.toFixed(2)}</span> / {dailyCap.toFixed(2)} Aura remaining
             </p>

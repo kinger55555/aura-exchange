@@ -25,7 +25,7 @@ function ProfilePage() {
   const { nickname } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number } | null>(null);
+  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number } | null>(null);
   const [myRole, setMyRole] = useState<Role>(null);
   const targetRole = useStaffRole(target?.id);
   const [busy, setBusy] = useState(true);
@@ -39,13 +39,24 @@ function ProfilePage() {
   const [banOpen, setBanOpen] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [banDays, setBanDays] = useState(1);
+  const [setAuraVal, setSetAuraVal] = useState<number>(0);
+  const [grayAmt, setGrayAmt] = useState<number>(10);
 
   const load = useCallback(async () => {
     setBusy(true);
     const { data } = await supabase.from("profiles")
-      .select("id, nickname, aura_balance")
+      .select("id, nickname, aura_balance, gray_aura, current_rank")
       .ilike("nickname", nickname).maybeSingle();
-    if (data) setTarget({ id: data.id, nickname: data.nickname!, aura_balance: Number(data.aura_balance) });
+    if (data) {
+      setTarget({
+        id: data.id,
+        nickname: data.nickname!,
+        aura_balance: Number(data.aura_balance),
+        gray_aura: Number((data as any).gray_aura ?? 0),
+        current_rank: Number((data as any).current_rank ?? 1),
+      });
+      setSetAuraVal(Number(data.aura_balance));
+    }
     if (user) {
       const { data: r } = await supabase.from("staff_roles").select("role").eq("user_id", user.id);
       const ranks = (r ?? []).map((x: any) => x.role);
@@ -122,6 +133,31 @@ function ProfilePage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function ownerSetAura() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("set_user_aura", { p_nickname: target.nickname, p_amount: setAuraVal });
+      if (error) throw error;
+      toast.success(`Aura set to ${setAuraVal}`); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function ownerGrantGray() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("grant_gray_aura", { p_nickname: target.nickname, p_amount: grayAmt });
+      if (error) throw error;
+      toast.success(`Granted ${grayAmt} gray Aura`); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+  async function ownerRankUp() {
+    if (!target) return;
+    try {
+      const { error } = await supabase.rpc("owner_rank_up", { p_nickname: target.nickname });
+      if (error) throw error;
+      toast.success("Ascended one rank"); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   if (busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
   if (!target) return (
     <main className="min-h-screen flex items-center justify-center p-6">
@@ -157,6 +193,11 @@ function ProfilePage() {
           <div className="mt-4 border-t-2 border-dashed border-primary/30 pt-3">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">Aura Balance</p>
             <p className="font-display text-4xl text-primary mt-1">{formatAura(target.aura_balance)}</p>
+            {target.gray_aura > 0 && (
+              <p className="font-display text-xl text-muted-foreground mt-1">
+                {formatAura(target.gray_aura)} <span className="text-xs uppercase tracking-widest">Gray</span>
+              </p>
+            )}
           </div>
         </section>
 
@@ -219,6 +260,25 @@ function ProfilePage() {
                     <Ban className="size-4 mr-2" /> Issue Ban
                   </Button>
                 )}
+              </div>
+            )}
+
+            {myRole === "owner" && !isSelf && (
+              <div className="border-t-2 border-dashed border-secondary/40 pt-3 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-secondary-foreground font-bold">Owner Tools</p>
+                <Label className="uppercase tracking-wider text-xs">Set Aura to</Label>
+                <div className="flex gap-2">
+                  <Input type="number" value={setAuraVal} onChange={(e) => setSetAuraVal(Number(e.target.value))} />
+                  <Button onClick={ownerSetAura} className="bg-secondary text-secondary-foreground uppercase tracking-widest font-display">Set</Button>
+                </div>
+                <Label className="uppercase tracking-wider text-xs">Grant Gray Aura</Label>
+                <div className="flex gap-2">
+                  <Input type="number" value={grayAmt} onChange={(e) => setGrayAmt(Number(e.target.value))} />
+                  <Button onClick={ownerGrantGray} variant="outline" className="uppercase tracking-widest font-display">Grant</Button>
+                </div>
+                <Button onClick={ownerRankUp} className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-display">
+                  <Crown className="size-4 mr-2" /> Rank Up (currently #{target.current_rank})
+                </Button>
               </div>
             )}
           </section>
