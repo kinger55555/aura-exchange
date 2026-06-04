@@ -123,9 +123,10 @@ function SettingsPage() {
           </section>
         )}
 
-        {(role === "owner" || role === "admin") && (
+        {role === "owner" && (
           <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-3">
-            <h2 className="font-display text-lg uppercase text-primary">Grant Powers</h2>
+            <h2 className="font-display text-lg uppercase text-primary">Owner Grant Powers</h2>
+            <p className="text-xs text-muted-foreground">Tip: open a comrade's profile for one-tap Set Aura / Grant Gray / Rank Up.</p>
             <div>
               <Label className="uppercase tracking-wider text-xs">Comrade nickname</Label>
               <Input value={grantNick} onChange={(e) => setGrantNick(e.target.value)} className="font-mono" />
@@ -135,17 +136,13 @@ function SettingsPage() {
               <Input type="number" value={grantAmt} onChange={(e) => setGrantAmt(Number(e.target.value))} />
             </div>
             <Button onClick={doGrantGray} variant="outline" className="w-full uppercase tracking-widest text-xs">Grant Gray Aura</Button>
-            {role === "owner" && (
-              <>
-                <Button onClick={doGrantAura} className="w-full bg-primary text-primary-foreground uppercase tracking-widest text-xs">Grant Real Aura</Button>
-                <div>
-                  <Label className="uppercase tracking-wider text-xs">Set rank (#)</Label>
-                  <Input type="number" min={1} value={grantRank} onChange={(e) => setGrantRank(Number(e.target.value))} />
-                </div>
-                <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
-                <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
-              </>
-            )}
+            <Button onClick={doGrantAura} className="w-full bg-primary text-primary-foreground uppercase tracking-widest text-xs">Grant Real Aura</Button>
+            <div>
+              <Label className="uppercase tracking-wider text-xs">Set rank (#)</Label>
+              <Input type="number" min={1} value={grantRank} onChange={(e) => setGrantRank(Number(e.target.value))} />
+            </div>
+            <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
+            <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
           </section>
         )}
 
