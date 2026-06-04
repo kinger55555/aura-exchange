@@ -244,6 +244,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         Insert: {
           aura_balance?: number
@@ -253,6 +255,8 @@ export type Database = {
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
+          test_mode?: boolean
+          test_mode_saved_balance?: number | null
         }
         Update: {
           aura_balance?: number
@@ -262,6 +266,8 @@ export type Database = {
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
+          test_mode?: boolean
+          test_mode_saved_balance?: number | null
         }
         Relationships: []
       }
@@ -651,6 +657,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -718,6 +726,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -914,6 +924,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -932,6 +944,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -940,6 +954,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      reset_all_aura: { Args: never; Returns: undefined }
       resolve_game: {
         Args: { p_result_data: Json; p_session_id: string; p_status: string }
         Returns: {
@@ -1027,6 +1042,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -1045,6 +1062,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
@@ -1070,6 +1089,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_test_mode: {
+        Args: { p_enabled: boolean; p_nickname: string }
+        Returns: {
+          aura_balance: number
+          created_at: string
+          current_rank: number
+          id: string
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       staff_checkin: { Args: never; Returns: Json }
       staff_punish: {
         Args: { p_amount: number; p_reason?: string; p_user_id: string }
@@ -1081,6 +1120,8 @@ export type Database = {
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
         }
         SetofOptions: {
           from: "*"
