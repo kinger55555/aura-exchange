@@ -96,6 +96,21 @@ function ShopPage() {
     }
   }
 
+  async function buyGray() {
+    if (!next) return;
+    setBuying(true);
+    try {
+      const { error } = await supabase.rpc("purchase_rank_gray");
+      if (error) throw error;
+      toast.success(`Ascended to ${next.name} (gray)`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The State denies your ascension");
+    } finally {
+      setBuying(false);
+    }
+  }
+
   async function buyTicket(kind: "regular" | "special") {
     setBuying(true);
     try {
@@ -129,6 +144,11 @@ function ShopPage() {
         <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Your Aura</p>
           <p className="font-display text-4xl text-primary">{formatAura(balance)}</p>
+          {gray > 0 && (
+            <p className="font-display text-2xl text-muted-foreground mt-1">
+              {formatAura(gray)} <span className="text-xs uppercase tracking-widest">Gray Aura</span>
+            </p>
+          )}
           <p className="text-xs uppercase tracking-widest text-muted-foreground mt-2">
             Current rank: <span className="text-primary font-bold">{current.name}</span> (#{current.rank})
           </p>
@@ -168,6 +188,14 @@ function ShopPage() {
           >
             <ArrowUp className="size-5 mr-2" />
             {buying ? "Ascending…" : canAfford ? `Buy ${next.name}` : "Insufficient Aura"}
+          </Button>
+          <Button
+            disabled={buying || gray < Number(next.upgrade_cost)}
+            onClick={buyGray}
+            variant="outline"
+            className="w-full mt-2 h-10 uppercase tracking-widest text-xs"
+          >
+            {gray >= Number(next.upgrade_cost) ? `Buy with Gray Aura` : `Need ${formatAura(next.upgrade_cost)} Gray`}
           </Button>
         </section>
 
