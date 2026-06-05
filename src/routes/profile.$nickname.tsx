@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { StaffBadge, useStaffRole } from "@/components/StaffBadge";
-import { getRank, formatAura } from "@/lib/rank";
+import { getRank, formatAura, formatDisplayName } from "@/lib/rank";
 import { Crown, Shield, AlertTriangle, ArrowLeft, Send, Gavel, Ban } from "lucide-react";
 
 export const Route = createFileRoute("/profile/$nickname")({
@@ -186,7 +186,7 @@ function ProfilePage() {
         <section className="border-2 border-primary bg-card p-5 shadow-[4px_4px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h1 className="font-display text-3xl uppercase text-primary mt-1 break-words flex items-center gap-2">
-            {target.nickname}
+            {formatDisplayName(target.nickname, target.title_text, target.title_position)}
             <StaffBadge role={targetRole} />
           </h1>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] uppercase tracking-widest font-bold">
