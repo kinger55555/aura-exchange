@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getRank, formatAura } from "@/lib/rank";
+import { getRank, formatAura, formatDisplayName } from "@/lib/rank";
 import {
   Dialog,
   DialogContent,
@@ -286,7 +286,7 @@ function Dashboard() {
         <section className="lg:col-span-1 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h2 className="font-display text-4xl uppercase text-primary mt-1 break-words">
-            {profile.nickname}
+            {formatDisplayName(profile.nickname, profile.title_text, profile.title_position)}
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
             {rankInfo?.name ?? rank.title}
