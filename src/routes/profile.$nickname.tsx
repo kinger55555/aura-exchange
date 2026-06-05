@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { StaffBadge, useStaffRole } from "@/components/StaffBadge";
-import { getRank, formatAura } from "@/lib/rank";
+import { getRank, formatAura, formatDisplayName } from "@/lib/rank";
 import { Crown, Shield, AlertTriangle, ArrowLeft, Send, Gavel, Ban } from "lucide-react";
 
 export const Route = createFileRoute("/profile/$nickname")({
@@ -25,7 +25,7 @@ function ProfilePage() {
   const { nickname } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number } | null>(null);
+  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number; title_text: string | null; title_position: "prefix" | "suffix" } | null>(null);
   const [myRole, setMyRole] = useState<Role>(null);
   const targetRole = useStaffRole(target?.id);
   const [busy, setBusy] = useState(true);
@@ -45,7 +45,7 @@ function ProfilePage() {
   const load = useCallback(async () => {
     setBusy(true);
     const { data } = await supabase.from("profiles")
-      .select("id, nickname, aura_balance, gray_aura, current_rank")
+      .select("id, nickname, aura_balance, gray_aura, current_rank, title_position, title:equipped_title_id(text)")
       .ilike("nickname", nickname).maybeSingle();
     if (data) {
       setTarget({
@@ -54,6 +54,8 @@ function ProfilePage() {
         aura_balance: Number(data.aura_balance),
         gray_aura: Number((data as any).gray_aura ?? 0),
         current_rank: Number((data as any).current_rank ?? 1),
+        title_text: ((data as any).title?.text) ?? null,
+        title_position: ((data as any).title_position ?? "prefix"),
       });
       setSetAuraVal(Number(data.aura_balance));
     }
@@ -184,7 +186,7 @@ function ProfilePage() {
         <section className="border-2 border-primary bg-card p-5 shadow-[4px_4px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h1 className="font-display text-3xl uppercase text-primary mt-1 break-words flex items-center gap-2">
-            {target.nickname}
+            {formatDisplayName(target.nickname, target.title_text, target.title_position)}
             <StaffBadge role={targetRole} />
           </h1>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] uppercase tracking-widest font-bold">

@@ -240,6 +240,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -248,11 +249,13 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         Insert: {
           aura_balance?: number
           created_at?: string
           current_rank?: number
+          equipped_title_id?: string | null
           gray_aura?: number
           id: string
           last_daily_ticket_at?: string | null
@@ -261,11 +264,13 @@ export type Database = {
           rank_before_gray?: number | null
           test_mode?: boolean
           test_mode_saved_balance?: number | null
+          title_position?: string
         }
         Update: {
           aura_balance?: number
           created_at?: string
           current_rank?: number
+          equipped_title_id?: string | null
           gray_aura?: number
           id?: string
           last_daily_ticket_at?: string | null
@@ -274,8 +279,17 @@ export type Database = {
           rank_before_gray?: number | null
           test_mode?: boolean
           test_mode_saved_balance?: number | null
+          title_position?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_equipped_title_id_fkey"
+            columns: ["equipped_title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ranks: {
         Row: {
@@ -564,6 +578,36 @@ export type Database = {
           },
         ]
       }
+      titles: {
+        Row: {
+          buyable: boolean
+          cost: number | null
+          created_at: string
+          id: string
+          text: string
+          tier: string
+          unlock_condition: string | null
+        }
+        Insert: {
+          buyable?: boolean
+          cost?: number | null
+          created_at?: string
+          id?: string
+          text: string
+          tier: string
+          unlock_condition?: string | null
+        }
+        Update: {
+          buyable?: boolean
+          cost?: number | null
+          created_at?: string
+          id?: string
+          text?: string
+          tier?: string
+          unlock_condition?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_received: number
@@ -605,6 +649,35 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_titles: {
+        Row: {
+          acquired_at: string
+          id: string
+          title_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          title_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          title_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_titles_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
             referencedColumns: ["id"]
           },
         ]
@@ -659,6 +732,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -667,6 +741,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -730,6 +805,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -738,6 +814,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -748,6 +825,10 @@ export type Database = {
       }
       destroy_party: { Args: { p_party_id: string }; Returns: undefined }
       ensure_tickets: { Args: never; Returns: undefined }
+      equip_title: {
+        Args: { p_position: string; p_title_id: string }
+        Returns: undefined
+      }
       finalize_assembly: {
         Args: { p_session_id: string }
         Returns: {
@@ -818,6 +899,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -826,6 +908,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -840,6 +923,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -848,6 +932,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -855,6 +940,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      grant_title: {
+        Args: { p_nickname: string; p_title_id: string }
+        Returns: undefined
       }
       has_role: {
         Args: {
@@ -953,6 +1042,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -961,6 +1051,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -996,6 +1087,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1004,6 +1096,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1018,6 +1111,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1026,6 +1120,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1034,12 +1129,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      purchase_title: { Args: { p_title_id: string }; Returns: undefined }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1048,6 +1145,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1076,6 +1174,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      revoke_title: {
+        Args: { p_nickname: string; p_title_id: string }
+        Returns: undefined
       }
       rr_mark_afk: {
         Args: { p_session_id: string }
@@ -1141,6 +1243,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1149,6 +1252,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1163,6 +1267,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1171,6 +1276,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1202,6 +1308,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1210,6 +1317,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1224,6 +1332,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1232,6 +1341,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1246,6 +1356,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1254,6 +1365,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1269,6 +1381,7 @@ export type Database = {
           aura_balance: number
           created_at: string
           current_rank: number
+          equipped_title_id: string | null
           gray_aura: number
           id: string
           last_daily_ticket_at: string | null
@@ -1277,6 +1390,7 @@ export type Database = {
           rank_before_gray: number | null
           test_mode: boolean
           test_mode_saved_balance: number | null
+          title_position: string
         }
         SetofOptions: {
           from: "*"
@@ -1355,6 +1469,7 @@ export type Database = {
         Args: { p_game_type: string; p_party_id: string }
         Returns: undefined
       }
+      unequip_title: { Args: never; Returns: undefined }
     }
     Enums: {
       staff_role: "owner" | "admin" | "moderator"

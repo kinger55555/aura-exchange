@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatAura } from "@/lib/rank";
+import { formatAura, formatDisplayName } from "@/lib/rank";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number };
+type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number; title_text?: string | null; title_position?: "prefix" | "suffix" };
 
 function LeaderboardPage() {
   const { user, loading } = useAuth();
@@ -52,7 +52,7 @@ function LeaderboardPage() {
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, nickname, aura_balance, current_rank")
+          .select("id, nickname, aura_balance, current_rank, title_position, title:equipped_title_id(text)")
           .not("nickname", "is", null)
           .order("aura_balance", { ascending: false })
           .limit(500),
@@ -60,7 +60,14 @@ function LeaderboardPage() {
         supabase.from("bans").select("user_id").eq("status", "active"),
       ]);
       const bannedIds = new Set((bansData ?? []).map((b: any) => b.user_id));
-      if (data) setRows(data.map((r: any) => ({ ...r, aura_balance: Number(r.aura_balance), current_rank: r.current_rank ?? 1 })).filter((r: any) => !bannedIds.has(r.id)));
+      if (data) setRows(data.map((r: any) => ({
+        id: r.id,
+        nickname: r.nickname,
+        aura_balance: Number(r.aura_balance),
+        current_rank: r.current_rank ?? 1,
+        title_text: r.title?.text ?? null,
+        title_position: r.title_position ?? "prefix",
+      })).filter((r: any) => !bannedIds.has(r.id)));
       if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
       setBusy(false);
     })();
@@ -172,7 +179,7 @@ function LeaderboardPage() {
                           params={{ nickname: r.nickname ?? "" }}
                           className="hover:underline hover:text-secondary transition-colors"
                         >
-                          {r.nickname}
+                          {formatDisplayName(r.nickname, r.title_text, r.title_position)}
                         </Link>
                         <StaffBadgeFor userId={r.id} className="ml-1" />
                         {isMe && (

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getRank, formatAura } from "@/lib/rank";
+import { getRank, formatAura, formatDisplayName } from "@/lib/rank";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
-type Profile = { id: string; nickname: string | null; aura_balance: number; gray_aura?: number };
+type Profile = { id: string; nickname: string | null; aura_balance: number; gray_aura?: number; title_text?: string | null; title_position?: "prefix" | "suffix" };
 type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number; upgrade_cost: number };
 type Ledger = {
   id: string;
@@ -90,14 +90,21 @@ function Dashboard() {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("id, nickname, aura_balance, gray_aura")
+      .select("id, nickname, aura_balance, gray_aura, title_position, title:equipped_title_id(text)")
       .eq("id", user.id)
       .maybeSingle();
     if (data && !data.nickname) {
       navigate({ to: "/onboarding" });
       return;
     }
-    if (data) setProfile({ ...data, aura_balance: Number(data.aura_balance), gray_aura: Number((data as any).gray_aura ?? 0) });
+    if (data) setProfile({
+      id: (data as any).id,
+      nickname: (data as any).nickname,
+      aura_balance: Number((data as any).aura_balance),
+      gray_aura: Number((data as any).gray_aura ?? 0),
+      title_text: ((data as any).title?.text) ?? null,
+      title_position: ((data as any).title_position ?? "prefix"),
+    });
     if (data) {
       const { data: r } = await supabase
         .from("profiles")
@@ -279,7 +286,7 @@ function Dashboard() {
         <section className="lg:col-span-1 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h2 className="font-display text-4xl uppercase text-primary mt-1 break-words">
-            {profile.nickname}
+            {formatDisplayName(profile.nickname, profile.title_text, profile.title_position)}
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
             {rankInfo?.name ?? rank.title}
