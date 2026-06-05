@@ -656,18 +656,21 @@ export type Database = {
       user_titles: {
         Row: {
           acquired_at: string
+          bought_with_gray: boolean
           id: string
           title_id: string
           user_id: string
         }
         Insert: {
           acquired_at?: string
+          bought_with_gray?: boolean
           id?: string
           title_id: string
           user_id: string
         }
         Update: {
           acquired_at?: string
+          bought_with_gray?: boolean
           id?: string
           title_id?: string
           user_id?: string
@@ -1130,6 +1133,7 @@ export type Database = {
         }
       }
       purchase_title: { Args: { p_title_id: string }; Returns: undefined }
+      purchase_title_gray: { Args: { p_title_id: string }; Returns: undefined }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {

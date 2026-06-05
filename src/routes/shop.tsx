@@ -161,6 +161,17 @@ function ShopPage() {
     finally { setWorking(false); }
   }
 
+  async function purchaseTitleGray(t: Title) {
+    setWorking(true);
+    try {
+      const { error } = await supabase.rpc("purchase_title_gray", { p_title_id: t.id });
+      if (error) throw error;
+      toast.success(`Acquired "${t.text.trim()}" (gray)`);
+      load();
+    } catch (e: any) { toast.error(e.message ?? "The State refuses"); }
+    finally { setWorking(false); }
+  }
+
   async function equipTitle(t: Title, pos: "prefix" | "suffix") {
     setWorking(true);
     try {
@@ -345,9 +356,14 @@ function ShopPage() {
                             {own ? (
                               <span className="text-xs uppercase tracking-widest text-primary flex items-center gap-1"><Check className="size-3" /> Owned</span>
                             ) : t.buyable ? (
-                              <Button size="sm" disabled={working || balance < (t.cost ?? 0)} onClick={() => purchaseTitle(t)}>
-                                Buy
-                              </Button>
+                              <div className="flex flex-col gap-1">
+                                <Button size="sm" disabled={working || balance < (t.cost ?? 0)} onClick={() => purchaseTitle(t)}>
+                                  Buy
+                                </Button>
+                                <Button size="sm" variant="outline" disabled={working || gray < (t.cost ?? 0)} onClick={() => purchaseTitleGray(t)}>
+                                  Gray
+                                </Button>
+                              </div>
                             ) : (
                               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Locked</span>
                             )}
