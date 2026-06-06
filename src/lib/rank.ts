@@ -17,7 +17,8 @@ export function formatDisplayName(
 ): string {
   const nick = nickname ?? "";
   if (!titleText) return nick;
-  return titlePosition === "suffix" ? `${nick} ${titleText.trim()}` : `${titleText}${nick}`;
+  const t = `[${titleText.trim()}]`;
+  return titlePosition === "suffix" ? `${nick} ${t}` : `${t} ${nick}`;
 }
 
 export const TIER_ORDER = ["Common", "Rare", "Epic", "Legendary", "Godlike"] as const;
