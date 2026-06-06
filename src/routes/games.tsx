@@ -431,9 +431,11 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
   const [submitted, setSubmitted] = useState(false);
   const submittedRef = useRef(false);
   const finalizing = useRef(false);
+  const lastClickAt = useRef(0);
+  const recentClicks = useRef<number[]>([]);
 
   useEffect(() => {
-    const i = setInterval(() => setNow(Date.now()), 200);
+    const i = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(i);
   }, []);
 
@@ -443,8 +445,19 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
   const inJam = elapsed >= windows.jam_start && elapsed < windows.jam_start + 10;
   const ended = now >= endAt;
 
-  function tap() {
+  function tap(e: React.MouseEvent | React.PointerEvent) {
     if (ended) return;
+    // Anti-cheat: only trust real user input
+    if (!e.isTrusted) return;
+    const t = performance.now();
+    // Reject auto-clickers: minimum 40ms between clicks (~25/s ceiling)
+    if (t - lastClickAt.current < 40) return;
+    // Rolling window: max 15 clicks per second
+    recentClicks.current = recentClicks.current.filter((x) => t - x < 1000);
+    if (recentClicks.current.length >= 15) return;
+    recentClicks.current.push(t);
+    lastClickAt.current = t;
+
     let inc = 1;
     if (inJam) inc = 0;
     else if (inSurge) inc = 2;
@@ -471,13 +484,58 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
   }, [ended]);
 
   const status = inJam ? "JAMMED" : inSurge ? "STAKHANOVITE SURGE" : "WORK";
+  const totalSec = Math.max(1, Math.round((endAt - startAt) / 1000));
+  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const ss = String(remaining % 60).padStart(2, "0");
+  const timePct = Math.min(100, ((totalSec - remaining) / totalSec) * 100);
+
+  // Reward tiers (per-player click target, assuming team avg ≈ your clicks)
+  const TIERS = [
+    { target: 240, mult: 1.0, label: "×1.0" },
+    { target: 360, mult: 1.5, label: "×1.5" },
+    { target: 480, mult: 2.0, label: "×2.0" },
+  ];
+  const nextTier = TIERS.find((t) => clicks < t.target);
+  const currentMult = [...TIERS].reverse().find((t) => clicks >= t.target)?.label ?? "×0.5";
 
   return (
     <div className="border-2 border-primary p-4 mt-3 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-muted-foreground">Assembly Line</span>
-        <span className="font-mono text-lg text-primary">{remaining}s</span>
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Shift ends in</p>
+          <p className={`font-display text-4xl tabular-nums ${remaining <= 10 ? "text-destructive animate-pulse" : "text-primary"}`}>
+            {mm}:{ss}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Current bonus</p>
+          <p className="font-display text-2xl text-secondary">{currentMult}</p>
+        </div>
       </div>
+      <div className="h-1.5 bg-primary/10 border border-primary/30">
+        <div className="h-full bg-primary transition-all" style={{ width: `${timePct}%` }} />
+      </div>
+
+      {/* Reward targets */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {TIERS.map((t) => {
+          const reached = clicks >= t.target;
+          return (
+            <div key={t.target} className={`border-2 p-2 ${reached ? "border-secondary bg-secondary/20" : "border-primary/30"}`}>
+              <p className={`font-display text-lg ${reached ? "text-secondary" : "text-primary"}`}>{t.label}</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {reached ? "✓ Locked in" : `${t.target} clicks`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      {nextTier && !ended && (
+        <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
+          {nextTier.target - clicks} more clicks → {nextTier.label}
+        </p>
+      )}
+
       <p className={`text-center font-display text-3xl uppercase ${inJam ? "text-destructive" : inSurge ? "text-secondary" : "text-primary"}`}>
         {status}
       </p>
@@ -496,7 +554,7 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
         {ended ? (submitted ? "Submitted" : "Submitting…") : `TAP · ${clicks}`}
       </button>
       <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
-        60s shift · Surge ×2 · Jam ×0
+        {totalSec}s shift · Surge ×2 · Jam ×0 · Anti-cheat active
       </p>
     </div>
   );
