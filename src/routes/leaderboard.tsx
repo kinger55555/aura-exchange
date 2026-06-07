@@ -37,6 +37,7 @@ function LeaderboardPage() {
   const [reportAmount, setReportAmount] = useState<number>(1);
   const [reportReason, setReportReason] = useState("");
   const [reporting, setReporting] = useState(false);
+  const [myMaxSend, setMyMaxSend] = useState<number>(0);
 
   useEffect(() => {
     if (loading) return;
@@ -69,6 +70,11 @@ function LeaderboardPage() {
         title_position: r.title_position ?? "prefix",
       })).filter((r: any) => !bannedIds.has(r.id)));
       if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
+      const me = (data ?? []).find((r: any) => r.id === user.id);
+      if (me) {
+        const { data: ri } = await supabase.rpc("get_rank_info", { p_rank: me.current_rank ?? 1 });
+        if (ri) setMyMaxSend(Number((ri as any).max_send ?? 0));
+      }
       setBusy(false);
     })();
 
@@ -228,12 +234,12 @@ function LeaderboardPage() {
               The State demands sacrifice for justice.
             </p>
             <div>
-              <Label className="uppercase tracking-wider text-xs">Aura to burn (max 5)</Label>
+              <Label className="uppercase tracking-wider text-xs">Aura to burn (max {Math.max(0, myMaxSend / 2)})</Label>
               <Input
                 required
                 type="number"
                 min={0.01}
-                max={5}
+                max={Math.max(0.01, myMaxSend / 2)}
                 step={0.01}
                 value={reportAmount}
                 onChange={(e) => setReportAmount(Number(e.target.value))}
