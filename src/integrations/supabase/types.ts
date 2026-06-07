@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           current_game: string | null
           game_week_id: string
+          has_password: boolean | null
           id: string
           max_players: number | null
           name: string
@@ -165,6 +166,7 @@ export type Database = {
           created_at?: string
           current_game?: string | null
           game_week_id: string
+          has_password?: boolean | null
           id?: string
           max_players?: number | null
           name: string
@@ -176,6 +178,7 @@ export type Database = {
           created_at?: string
           current_game?: string | null
           game_week_id?: string
+          has_password?: boolean | null
           id?: string
           max_players?: number | null
           name?: string
@@ -763,6 +766,7 @@ export type Database = {
               created_at: string
               current_game: string | null
               game_week_id: string
+              has_password: boolean | null
               id: string
               max_players: number | null
               name: string
@@ -788,6 +792,7 @@ export type Database = {
               created_at: string
               current_game: string | null
               game_week_id: string
+              has_password: boolean | null
               id: string
               max_players: number | null
               name: string
@@ -1040,6 +1045,7 @@ export type Database = {
         }
       }
       my_quota: { Args: never; Returns: Json }
+      my_staff_salary: { Args: never; Returns: number }
       owner_rank_up: {
         Args: { p_nickname: string }
         Returns: {
