@@ -23,7 +23,7 @@ type Party = {
   id: string;
   name: string;
   aura_bet: number;
-  password: string | null;
+  has_password: boolean | null;
   owner_id: string;
   max_players: number | null;
   current_game: string | null;
