@@ -27,16 +27,16 @@ function SettingsPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const [{ data: p }, { data: roles }] = await Promise.all([
+    const [{ data: p }, { data: roles }, { data: salaryRpc }] = await Promise.all([
       supabase.from("profiles").select("nickname").eq("id", user.id).maybeSingle(),
-      supabase.from("staff_roles").select("role,weekly_salary").eq("user_id", user.id),
+      supabase.from("staff_roles").select("role").eq("user_id", user.id),
+      supabase.rpc("my_staff_salary"),
     ]);
     setNick(p?.nickname ?? "");
     const ranks = (roles ?? []).map((r: any) => r.role);
     const best: Role = ranks.includes("owner") ? "owner" : ranks.includes("admin") ? "admin" : ranks.includes("moderator") ? "moderator" : null;
     setRole(best);
-    const ownerRow = (roles ?? []).find((r: any) => r.role === "owner");
-    if (ownerRow) setSalary(Number(ownerRow.weekly_salary));
+    if (salaryRpc != null) setSalary(Number(salaryRpc));
     setBusy(false);
   }, [user]);
 
