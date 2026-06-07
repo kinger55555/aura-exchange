@@ -165,6 +165,7 @@ function SettingsPage() {
             </div>
             <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
             <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
+            <Button onClick={doDestroyAllParties} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">☢ Destroy ALL Parties (even mid-game)</Button>
             <Button onClick={doFullReset} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">⚠ Full Reset (Year Zero)</Button>
           </section>
         )}
