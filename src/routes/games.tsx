@@ -166,7 +166,7 @@ function GamesPage() {
   }
 
   async function joinParty(p: Party) {
-    if (p.password) { setJoinPwd({ id: p.id, pwd: "" }); return; }
+    if (p.has_password) { setJoinPwd({ id: p.id, pwd: "" }); return; }
     const { error } = await supabase.rpc("join_party", { p_party_id: p.id });
     if (error) return toast.error(error.message);
     toast.success("Enlisted");
@@ -383,7 +383,7 @@ function GamesPage() {
                 <li key={p.id} className="py-2 flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-display uppercase text-primary truncate">
-                      {p.name} {p.password && <Lock className="inline size-3 ml-1" />}
+                      {p.name} {p.has_password && <Lock className="inline size-3 ml-1" />}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Bet {formatAura(p.aura_bet)} · {p.member_count}/{p.max_players ?? "∞"} · {GAME_LABELS[p.current_game ?? weeklyGame]}
