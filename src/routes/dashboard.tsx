@@ -533,12 +533,12 @@ function Dashboard() {
               The State demands sacrifice for justice.
             </p>
             <div>
-              <Label className="uppercase tracking-wider text-xs">Aura to burn (max 5)</Label>
+              <Label className="uppercase tracking-wider text-xs">Aura to burn (max {Math.max(0, Number(rankInfo?.max_send ?? 0) / 2)})</Label>
               <Input
                 required
                 type="number"
                 min={0.01}
-                max={5}
+                max={Math.max(0.01, Number(rankInfo?.max_send ?? 0) / 2)}
                 step={0.01}
                 value={reportAmount}
                 onChange={(e) => setReportAmount(Number(e.target.value))}
