@@ -91,7 +91,7 @@ function GamesPage() {
     // Parties for this week + counts
     const { data: pData } = await supabase
       .from("parties")
-      .select("id,name,aura_bet,password,owner_id,max_players,current_game,game_week_id")
+      .select("id,name,aura_bet,has_password,owner_id,max_players,current_game,game_week_id")
       .eq("game_week_id", week?.id ?? "00000000-0000-0000-0000-000000000000");
     const ps = (pData ?? []) as Party[];
 
