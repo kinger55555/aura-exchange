@@ -100,6 +100,16 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function doDestroyAllParties() {
+    if (!confirm("Destroy ALL parties (even ones mid-game) and refund all bets? This cannot be undone.")) return;
+    if (!confirm("Are you absolutely sure?")) return;
+    try {
+      const { error } = await supabase.rpc("destroy_all_parties");
+      if (error) throw error;
+      toast.success("All parties annihilated");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   async function doFullReset() {
     if (!confirm("FULL RESET: wipe ALL Aura, ranks, titles, transactions, reports, bans, parties, tickets and history. This cannot be undone. Continue?")) return;
     if (!confirm("Are you absolutely sure? Type OK on the next prompt.")) return;
