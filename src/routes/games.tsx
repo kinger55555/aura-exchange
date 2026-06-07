@@ -23,7 +23,7 @@ type Party = {
   id: string;
   name: string;
   aura_bet: number;
-  password: string | null;
+  has_password: boolean | null;
   owner_id: string;
   max_players: number | null;
   current_game: string | null;
@@ -91,7 +91,7 @@ function GamesPage() {
     // Parties for this week + counts
     const { data: pData } = await supabase
       .from("parties")
-      .select("id,name,aura_bet,password,owner_id,max_players,current_game,game_week_id")
+      .select("id,name,aura_bet,has_password,owner_id,max_players,current_game,game_week_id")
       .eq("game_week_id", week?.id ?? "00000000-0000-0000-0000-000000000000");
     const ps = (pData ?? []) as Party[];
 
@@ -166,7 +166,7 @@ function GamesPage() {
   }
 
   async function joinParty(p: Party) {
-    if (p.password) { setJoinPwd({ id: p.id, pwd: "" }); return; }
+    if (p.has_password) { setJoinPwd({ id: p.id, pwd: "" }); return; }
     const { error } = await supabase.rpc("join_party", { p_party_id: p.id });
     if (error) return toast.error(error.message);
     toast.success("Enlisted");
@@ -383,7 +383,7 @@ function GamesPage() {
                 <li key={p.id} className="py-2 flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-display uppercase text-primary truncate">
-                      {p.name} {p.password && <Lock className="inline size-3 ml-1" />}
+                      {p.name} {p.has_password && <Lock className="inline size-3 ml-1" />}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Bet {formatAura(p.aura_bet)} · {p.member_count}/{p.max_players ?? "∞"} · {GAME_LABELS[p.current_game ?? weeklyGame]}
