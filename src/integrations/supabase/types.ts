@@ -858,6 +858,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      full_reset: { Args: never; Returns: undefined }
       get_or_create_game_week: {
         Args: never
         Returns: {
