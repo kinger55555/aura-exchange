@@ -100,6 +100,16 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function doDestroyAllParties() {
+    if (!confirm("Destroy ALL parties (even ones mid-game) and refund all bets? This cannot be undone.")) return;
+    if (!confirm("Are you absolutely sure?")) return;
+    try {
+      const { error } = await supabase.rpc("destroy_all_parties");
+      if (error) throw error;
+      toast.success("All parties annihilated");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   async function doFullReset() {
     if (!confirm("FULL RESET: wipe ALL Aura, ranks, titles, transactions, reports, bans, parties, tickets and history. This cannot be undone. Continue?")) return;
     if (!confirm("Are you absolutely sure? Type OK on the next prompt.")) return;
@@ -155,6 +165,7 @@ function SettingsPage() {
             </div>
             <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
             <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
+            <Button onClick={doDestroyAllParties} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">☢ Destroy ALL Parties (even mid-game)</Button>
             <Button onClick={doFullReset} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">⚠ Full Reset (Year Zero)</Button>
           </section>
         )}
