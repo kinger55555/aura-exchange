@@ -831,6 +831,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      destroy_all_parties: { Args: never; Returns: undefined }
       destroy_party: { Args: { p_party_id: string }; Returns: undefined }
       ensure_tickets: { Args: never; Returns: undefined }
       equip_title: {
