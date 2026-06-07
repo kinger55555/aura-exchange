@@ -100,6 +100,18 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function doFullReset() {
+    if (!confirm("FULL RESET: wipe ALL Aura, ranks, titles, transactions, reports, bans, parties, tickets and history. This cannot be undone. Continue?")) return;
+    if (!confirm("Are you absolutely sure? Type OK on the next prompt.")) return;
+    const c = prompt("Type RESET to confirm");
+    if (c !== "RESET") { toast.error("Reset cancelled"); return; }
+    try {
+      const { error } = await supabase.rpc("full_reset");
+      if (error) throw error;
+      toast.success("The State has been reset to Year Zero");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   if (loading || busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
 
   return (
@@ -143,6 +155,7 @@ function SettingsPage() {
             </div>
             <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
             <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
+            <Button onClick={doFullReset} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">⚠ Full Reset (Year Zero)</Button>
           </section>
         )}
 
