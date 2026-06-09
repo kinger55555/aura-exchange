@@ -512,6 +512,35 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
           <p className="font-display text-2xl text-secondary">{currentMult}</p>
         </div>
       </div>
+      {/* Surge / Jam timeline */}
+      <div className="relative h-3 bg-primary/10 border border-primary/30">
+        {/* Surge window */}
+        <div
+          className="absolute top-0 bottom-0 bg-secondary"
+          style={{
+            left: `${(windows.surge_start / totalSec) * 100}%`,
+            width: `${(10 / totalSec) * 100}%`,
+          }}
+        />
+        {/* Jam window */}
+        <div
+          className="absolute top-0 bottom-0 bg-destructive/60"
+          style={{
+            left: `${(windows.jam_start / totalSec) * 100}%`,
+            width: `${(10 / totalSec) * 100}%`,
+          }}
+        />
+        {/* Current position indicator */}
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-primary-foreground"
+          style={{ left: `${Math.min(100, timePct)}%` }}
+        />
+      </div>
+      <div className="flex justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className={inSurge ? "text-secondary font-bold" : ""}>Surge ×2</span>
+        <span className={inJam ? "text-destructive font-bold" : ""}>Jam ×0</span>
+      </div>
+
       <div className="h-1.5 bg-primary/10 border border-primary/30">
         <div className="h-full bg-primary transition-all" style={{ width: `${timePct}%` }} />
       </div>
