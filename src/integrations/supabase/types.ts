@@ -704,6 +704,7 @@ export type Database = {
         Returns: undefined
       }
       _user_active_party: { Args: { p_uid: string }; Returns: string }
+      abandon_party: { Args: never; Returns: undefined }
       act_on_report: {
         Args: {
           p_action: string
@@ -838,6 +839,7 @@ export type Database = {
         Args: { p_position: string; p_title_id: string }
         Returns: undefined
       }
+      evacuate_all_parties: { Args: never; Returns: undefined }
       finalize_assembly: {
         Args: { p_session_id: string }
         Returns: {
