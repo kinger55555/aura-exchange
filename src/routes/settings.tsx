@@ -100,6 +100,16 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function doEvacuateAllParties() {
+    if (!confirm("Remove EVERYONE from ALL parties? Parties themselves will remain.")) return;
+    if (!confirm("Are you absolutely sure?")) return;
+    try {
+      const { error } = await supabase.rpc("evacuate_all_parties");
+      if (error) throw error;
+      toast.success("All comrades evacuated from parties");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   async function doDestroyAllParties() {
     if (!confirm("Destroy ALL parties (even ones mid-game) and refund all bets? This cannot be undone.")) return;
     if (!confirm("Are you absolutely sure?")) return;
@@ -165,6 +175,7 @@ function SettingsPage() {
             </div>
             <Button onClick={doSetRank} variant="outline" className="w-full uppercase tracking-widest text-xs">Set Comrade Rank</Button>
             <Button onClick={doResetGray} variant="destructive" className="w-full uppercase tracking-widest text-xs">Reset ALL Gray Aura</Button>
+            <Button onClick={doEvacuateAllParties} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">☢ Evacuate ALL Parties</Button>
             <Button onClick={doDestroyAllParties} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">☢ Destroy ALL Parties (even mid-game)</Button>
             <Button onClick={doFullReset} variant="destructive" className="w-full uppercase tracking-widest text-xs font-display border-2 border-destructive-foreground">⚠ Full Reset (Year Zero)</Button>
           </section>
