@@ -333,7 +333,12 @@ function GamesPage() {
             )}
 
             {session?.status === "in_progress" && (
-              <AssemblyLinePlay session={session} userId={user!.id} onDone={loadAll} />
+              <AssemblyLinePlay
+                session={session}
+                userId={user!.id}
+                playerCount={Math.max(1, members.length)}
+                onDone={loadAll}
+              />
             )}
             {session?.status === "completed" && session.result_data && (
               <div className="border-2 border-primary/40 p-3 text-sm">
@@ -442,12 +447,14 @@ function GamesPage() {
   );
 }
 
-function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userId: string; onDone: () => void }) {
+function AssemblyLinePlay({ session, userId, playerCount, onDone }: { session: Session; userId: string; playerCount: number; onDone: () => void }) {
   const startAt = new Date(session.state.start_at).getTime();
   const endAt = new Date(session.state.end_at).getTime();
   const windows = session.state.windows?.[userId] ?? { surge_start: 0, jam_start: 30 };
   const [now, setNow] = useState(Date.now());
-  const [clicks, setClicks] = useState(0);
+  const [myClicks, setMyClicks] = useState(0);
+  const [teamClicks, setTeamClicks] = useState(0);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const submittedRef = useRef(false);
   const finalizing = useRef(false);
@@ -458,6 +465,19 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
     const i = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(i);
   }, []);
+
+  // Shared tap channel — every member's tap adds to the team counter
+  useEffect(() => {
+    const ch = supabase.channel(`taps:${session.id}`, {
+      config: { broadcast: { self: false } },
+    });
+    ch.on("broadcast", { event: "tap" }, ({ payload }: any) => {
+      const inc = Number(payload?.inc ?? 0);
+      if (inc > 0) setTeamClicks((c) => c + inc);
+    }).subscribe();
+    channelRef.current = ch;
+    return () => { supabase.removeChannel(ch); };
+  }, [session.id]);
 
   const elapsed = Math.max(0, Math.floor((now - startAt) / 1000));
   const remaining = Math.max(0, Math.ceil((endAt - now) / 1000));
@@ -481,7 +501,10 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
     let inc = 1;
     if (inJam) inc = 0;
     else if (inSurge) inc = 2;
-    setClicks((c) => c + inc);
+    if (inc <= 0) return;
+    setMyClicks((c) => c + inc);
+    setTeamClicks((c) => c + inc);
+    channelRef.current?.send({ type: "broadcast", event: "tap", payload: { inc } });
   }
 
   // Auto-submit and finalize when the timer ends
@@ -489,7 +512,7 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
     if (!ended || submittedRef.current) return;
     submittedRef.current = true;
     (async () => {
-      const { error } = await supabase.rpc("submit_assembly_clicks", { p_session_id: session.id, p_clicks: clicks });
+      const { error } = await supabase.rpc("submit_assembly_clicks", { p_session_id: session.id, p_clicks: myClicks });
       if (error) toast.error(error.message);
       setSubmitted(true);
       // Anyone may attempt finalize; first one wins
@@ -509,14 +532,14 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
   const ss = String(remaining % 60).padStart(2, "0");
   const timePct = Math.min(100, ((totalSec - remaining) / totalSec) * 100);
 
-  // Reward tiers (per-player click target, assuming team avg ≈ your clicks)
+  // Reward tiers — shared pool: per-player target × player count
   const TIERS = [
-    { target: 240, mult: 1.0, label: "×1.0" },
-    { target: 360, mult: 1.5, label: "×1.5" },
-    { target: 480, mult: 2.0, label: "×2.0" },
+    { target: 240 * playerCount, mult: 1.0, label: "×1.0" },
+    { target: 360 * playerCount, mult: 1.5, label: "×1.5" },
+    { target: 480 * playerCount, mult: 2.0, label: "×2.0" },
   ];
-  const nextTier = TIERS.find((t) => clicks < t.target);
-  const currentMult = [...TIERS].reverse().find((t) => clicks >= t.target)?.label ?? "×0.5";
+  const nextTier = TIERS.find((t) => teamClicks < t.target);
+  const currentMult = [...TIERS].reverse().find((t) => teamClicks >= t.target)?.label ?? "×0.5";
 
   return (
     <div className="border-2 border-primary p-4 mt-3 space-y-3">
@@ -568,7 +591,7 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
       {/* Reward targets */}
       <div className="grid grid-cols-3 gap-2 text-center">
         {TIERS.map((t) => {
-          const reached = clicks >= t.target;
+          const reached = teamClicks >= t.target;
           return (
             <div key={t.target} className={`border-2 p-2 ${reached ? "border-secondary bg-secondary/20" : "border-primary/30"}`}>
               <p className={`font-display text-lg ${reached ? "text-secondary" : "text-primary"}`}>{t.label}</p>
@@ -581,7 +604,7 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
       </div>
       {nextTier && !ended && (
         <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
-          {nextTier.target - clicks} more clicks → {nextTier.label}
+          {nextTier.target - teamClicks} more team clicks → {nextTier.label}
         </p>
       )}
 
@@ -600,10 +623,10 @@ function AssemblyLinePlay({ session, userId, onDone }: { session: Session; userI
               : "border-primary bg-primary text-primary-foreground active:bg-primary/80"
         }`}
       >
-        {ended ? (submitted ? "Submitted" : "Submitting…") : `TAP · ${clicks}`}
+        {ended ? (submitted ? "Submitted" : "Submitting…") : `TAP · ${teamClicks}`}
       </button>
       <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
-        {totalSec}s shift · Surge ×2 · Jam ×0 · Anti-cheat active
+        {totalSec}s shift · Team pool ({playerCount} comrades) · Your taps: {myClicks}
       </p>
     </div>
   );
