@@ -100,6 +100,16 @@ function SettingsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function doEvacuateAllParties() {
+    if (!confirm("Remove EVERYONE from ALL parties? Parties themselves will remain.")) return;
+    if (!confirm("Are you absolutely sure?")) return;
+    try {
+      const { error } = await supabase.rpc("evacuate_all_parties");
+      if (error) throw error;
+      toast.success("All comrades evacuated from parties");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   async function doDestroyAllParties() {
     if (!confirm("Destroy ALL parties (even ones mid-game) and refund all bets? This cannot be undone.")) return;
     if (!confirm("Are you absolutely sure?")) return;
