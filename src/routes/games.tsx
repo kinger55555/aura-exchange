@@ -199,6 +199,14 @@ function GamesPage() {
     loadAll();
   }
 
+  async function abandonGhost() {
+    if (!confirm("You are stuck in a party that no longer exists. Abandon it?")) return;
+    const { error } = await supabase.rpc("abandon_party");
+    if (error) return toast.error(error.message);
+    toast.success("You escaped the void");
+    loadAll();
+  }
+
   async function kickMember(userId: string) {
     if (!myParty) return;
     if (!confirm("Remove this comrade from the party?")) return;
@@ -333,6 +341,18 @@ function GamesPage() {
                 <p>Avg {Number(session.result_data.avg).toFixed(1)} clicks · ×{session.result_data.multiplier} · +{formatAura(session.result_data.payout_per_player)} each</p>
               </div>
             )}
+          </section>
+        ) : myPartyId ? (
+          <section className="border-2 border-destructive bg-card p-4 shadow-[4px_4px_0_0_var(--destructive)] space-y-3">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">Ghost party</p>
+              <p className="font-display text-xl uppercase text-destructive">
+                You are stuck in a party that no longer exists
+              </p>
+            </div>
+            <Button onClick={abandonGhost} variant="destructive" className="w-full uppercase tracking-widest">
+              <LogOut className="size-4 mr-1" /> Abandon Ghost Party
+            </Button>
           </section>
         ) : (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
