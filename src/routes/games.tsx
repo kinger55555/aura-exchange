@@ -333,7 +333,12 @@ function GamesPage() {
             )}
 
             {session?.status === "in_progress" && (
-              <AssemblyLinePlay session={session} userId={user!.id} onDone={loadAll} />
+              <AssemblyLinePlay
+                session={session}
+                userId={user!.id}
+                playerCount={Math.max(1, members.length)}
+                onDone={loadAll}
+              />
             )}
             {session?.status === "completed" && session.result_data && (
               <div className="border-2 border-primary/40 p-3 text-sm">
