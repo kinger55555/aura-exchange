@@ -212,6 +212,17 @@ function ShopPage() {
     finally { setWorking(false); }
   }
 
+  async function sellTitle(t: Title, price: number) {
+    setWorking(true);
+    try {
+      const { data, error } = await supabase.rpc("sell_title", { p_title_id: t.id });
+      if (error) throw error;
+      toast.success(`Sold "${t.text.trim()}" for ${formatAura(price)} Aura`);
+      load();
+    } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
+    finally { setWorking(false); }
+  }
+
   async function openSuitcase() {
     if (suitcaseBusy) return;
     setSuitcaseBusy(true);
