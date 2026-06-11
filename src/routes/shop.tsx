@@ -316,7 +316,7 @@ function ShopPage() {
             <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
               <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Your Identity</p>
               <p className="font-display text-2xl text-primary mt-1 break-words">
-                {formatDisplayName(nickname, equippedTitle?.text, position)}
+                <DisplayName nickname={nickname} titleText={equippedTitle?.text} titlePosition={position} isGlitch={equippedTitle?.is_glitch} />
               </p>
               {equippedTitle && (
                 <div className="mt-3 flex flex-wrap gap-2">
