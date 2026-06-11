@@ -24,6 +24,16 @@ type StaffRow = {
   profile?: { nickname: string | null; aura_balance: number } | null;
 };
 
+type Tx = {
+  id: string;
+  amount_sent: number;
+  amount_received: number;
+  created_at: string;
+  reversed_at: string | null;
+  sender: { nickname: string | null } | null;
+  receiver: { nickname: string | null } | null;
+};
+
 function AdminPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +42,8 @@ function AdminPage() {
   const [busy, setBusy] = useState(true);
   const [newNick, setNewNick] = useState("");
   const [newSalary, setNewSalary] = useState(10);
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [reversing, setReversing] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -45,6 +57,12 @@ function AdminPage() {
       .select("id,user_id,role,hired_by,weekly_salary,hired_at,profile:user_id(nickname,aura_balance)")
       .order("role", { ascending: true });
     setStaff((data as any) ?? []);
+    const { data: txData } = await supabase
+      .from("transactions")
+      .select("id,amount_sent,amount_received,created_at,reversed_at,sender:sender_id(nickname),receiver:receiver_id(nickname)")
+      .order("created_at", { ascending: false })
+      .limit(25);
+    setTxs((txData as any) ?? []);
     setBusy(false);
   }, [user]);
 
@@ -76,6 +94,18 @@ function AdminPage() {
       toast.success("Fired");
       load();
     } catch (err: any) { toast.error(err.message ?? "Action denied"); }
+  }
+
+  async function reverseTx(tx: Tx) {
+    if (!confirm(`Reverse ${Number(tx.amount_sent).toFixed(2)} Aura from ${tx.sender?.nickname ?? "?"} → ${tx.receiver?.nickname ?? "?"}?`)) return;
+    setReversing(tx.id);
+    try {
+      const { error } = await supabase.rpc("staff_reverse_transfer", { p_tx_id: tx.id });
+      if (error) throw error;
+      toast.success("Transfer reversed");
+      load();
+    } catch (err: any) { toast.error(err.message ?? "Reversal denied"); }
+    finally { setReversing(null); }
   }
 
   if (loading || busy) return <main className="min-h-screen flex items-center justify-center"><p className="font-display text-xl uppercase text-primary">Loading…</p></main>;
@@ -127,6 +157,35 @@ function AdminPage() {
               </li>
             ))}
             {staff.length === 0 && <li className="p-6 text-center text-muted-foreground text-sm">No staff yet.</li>}
+          </ul>
+        </section>
+
+        <section className="border-2 border-destructive bg-card shadow-[4px_4px_0_0_var(--destructive)]">
+          <h2 className="font-display text-lg uppercase text-destructive px-3 py-2 border-b-2 border-destructive/30">Reverse Transfer</h2>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-3 pt-2">Refunds sender, debits receiver, awards "The Restricted".</p>
+          <ul className="divide-y divide-dashed divide-primary/15">
+            {txs.map((t) => (
+              <li key={t.id} className="p-3 flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-sm truncate">
+                    <span className="text-primary">{t.sender?.nickname ?? "?"}</span>
+                    <span className="text-muted-foreground"> → </span>
+                    <span className="text-primary">{t.receiver?.nickname ?? "?"}</span>
+                  </p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {Number(t.amount_sent).toFixed(2)} sent · {new Date(t.created_at).toLocaleString()}
+                  </p>
+                </div>
+                {t.reversed_at ? (
+                  <span className="text-[10px] uppercase tracking-widest text-destructive">Reversed</span>
+                ) : (
+                  <Button size="sm" variant="destructive" disabled={reversing === t.id} onClick={() => reverseTx(t)}>
+                    {reversing === t.id ? "…" : "Reverse"}
+                  </Button>
+                )}
+              </li>
+            ))}
+            {txs.length === 0 && <li className="p-6 text-center text-muted-foreground text-sm">No transfers yet.</li>}
           </ul>
         </section>
       </div>
