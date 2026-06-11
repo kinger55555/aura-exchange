@@ -534,9 +534,9 @@ function AssemblyLinePlay({ session, userId, playerCount, onDone }: { session: S
 
   // Reward tiers — shared pool: per-player target × player count
   const TIERS = [
-    { target: 240 * playerCount, mult: 1.0, label: "×1.0" },
-    { target: 360 * playerCount, mult: 1.5, label: "×1.5" },
-    { target: 480 * playerCount, mult: 2.0, label: "×2.0" },
+    { target: 180 * playerCount, mult: 1.0, label: "×1.0" },
+    { target: 240 * playerCount, mult: 1.5, label: "×1.5" },
+    { target: 300 * playerCount, mult: 2.0, label: "×2.0" },
   ];
   const nextTier = TIERS.find((t) => teamClicks < t.target);
   const currentMult = [...TIERS].reverse().find((t) => teamClicks >= t.target)?.label ?? "×0.5";
