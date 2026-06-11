@@ -24,16 +24,6 @@ type StaffRow = {
   profile?: { nickname: string | null; aura_balance: number } | null;
 };
 
-type Tx = {
-  id: string;
-  amount_sent: number;
-  amount_received: number;
-  created_at: string;
-  reversed_at: string | null;
-  sender: { nickname: string | null } | null;
-  receiver: { nickname: string | null } | null;
-};
-
 function AdminPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
