@@ -74,6 +74,20 @@ function ShopPage() {
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [working, setWorking] = useState(false);
 
+  // Suitcase state
+  const [suitcaseBusy, setSuitcaseBusy] = useState(false);
+  const [spins, setSpins] = useState<(boolean | null)[]>([null, null, null, null, null]);
+  const [revealIdx, setRevealIdx] = useState(-1);
+  const [suitcaseResult, setSuitcaseResult] = useState<null | {
+    tier: string | null;
+    title: { id: string; text: string; tier: string } | null;
+    refunded: boolean;
+    bunker_unlocked: boolean;
+  }>(null);
+  const [bunkerPending, setBunkerPending] = useState(false);
+  const [bunkerBusy, setBunkerBusy] = useState(false);
+  const [bunkerResult, setBunkerResult] = useState<null | { success: boolean; title: { text: string; is_glitch?: boolean } | null }>(null);
+
   const load = useCallback(async () => {
     if (!user) return;
     const { data: p } = await supabase
