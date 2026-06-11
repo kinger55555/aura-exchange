@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatAura, formatDisplayName, TIER_ORDER, tierTone } from "@/lib/rank";
-import { ArrowUp, Coins, Send, Ticket, Sparkles, Crown, Star, Lock, Check, ArrowLeftRight } from "lucide-react";
+import { formatAura, TIER_ORDER, tierTone } from "@/lib/rank";
+import { DisplayName } from "@/components/DisplayName";
+import { GlitchText } from "@/components/GlitchText";
+import { ArrowUp, Coins, Send, Ticket, Sparkles, Crown, Star, Lock, Check, ArrowLeftRight, Briefcase, X, DoorClosed } from "lucide-react";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({ meta: [{ title: "Shop — Absolute Communism" }] }),
@@ -34,6 +36,7 @@ type Title = {
   buyable: boolean;
   cost: number | null;
   unlock_condition: string | null;
+  is_glitch?: boolean;
 };
 
 function StatRow({ icon: Icon, label, from, to }: { icon: any; label: string; from: string | number; to: string | number }) {
