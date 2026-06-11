@@ -36,6 +36,7 @@ type Ledger = {
   amount_received: number;
   message: string | null;
   created_at: string;
+  reversed_at: string | null;
   sender: { nickname: string | null; aura_balance: number } | null;
   receiver: { nickname: string | null; aura_balance: number } | null;
 };
@@ -65,6 +66,8 @@ function Dashboard() {
   const [burnOpen, setBurnOpen] = useState(false);
   const [burnKeep, setBurnKeep] = useState<number>(0);
   const [burning, setBurning] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
+  const [reversingId, setReversingId] = useState<string | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -135,7 +138,7 @@ function Dashboard() {
     const { data } = await supabase
       .from("transactions")
       .select(
-        "id, amount_sent, amount_received, message, created_at, sender:sender_id(nickname, aura_balance), receiver:receiver_id(nickname, aura_balance)"
+        "id, amount_sent, amount_received, message, created_at, reversed_at, sender:sender_id(nickname, aura_balance), receiver:receiver_id(nickname, aura_balance)"
       )
       .order("created_at", { ascending: false })
       .limit(30);
@@ -147,6 +150,14 @@ function Dashboard() {
     loadProfile();
     loadLedger();
     loadQuota();
+    (async () => {
+      const { data } = await supabase
+        .from("staff_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      const roles = (data ?? []).map((r: any) => r.role);
+      setIsStaff(roles.includes("owner") || roles.includes("admin"));
+    })();
 
     const ch = supabase
       .channel("ledger")
@@ -164,6 +175,22 @@ function Dashboard() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  async function reverseTx(txId: string) {
+    if (!confirm("Reverse this transfer? Sender is refunded, receiver debited, and 'The Restricted' awarded.")) return;
+    setReversingId(txId);
+    try {
+      const { error } = await supabase.rpc("staff_reverse_transfer", { p_tx_id: txId });
+      if (error) throw error;
+      toast.success("Transfer reversed");
+      loadLedger();
+      loadProfile();
+    } catch (err: any) {
+      toast.error(err.message ?? "Reversal denied");
+    } finally {
+      setReversingId(null);
+    }
+  }
 
   async function sendAura(e: React.FormEvent) {
     e.preventDefault();
@@ -442,6 +469,20 @@ function Dashboard() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString()}
                     </span>
+                    {t.reversed_at && (
+                      <span className="text-[10px] uppercase tracking-widest text-destructive border border-destructive/40 px-1.5 py-0.5">
+                        Reversed
+                      </span>
+                    )}
+                    {isStaff && !t.reversed_at && (
+                      <button
+                        onClick={() => reverseTx(t.id)}
+                        disabled={reversingId === t.id}
+                        className="text-[10px] uppercase tracking-widest text-destructive border border-destructive/40 px-1.5 py-0.5 hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                      >
+                        {reversingId === t.id ? "…" : "Reverse"}
+                      </button>
+                    )}
                     {t.sender?.nickname && t.sender.nickname !== profile.nickname && (
                       <button
                         onClick={() => setReportTarget(t.sender!.nickname)}
