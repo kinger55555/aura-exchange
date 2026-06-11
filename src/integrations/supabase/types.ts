@@ -619,6 +619,8 @@ export type Database = {
           id: string
           message: string | null
           receiver_id: string
+          reversed_at: string | null
+          reversed_by: string | null
           sender_id: string
         }
         Insert: {
@@ -628,6 +630,8 @@ export type Database = {
           id?: string
           message?: string | null
           receiver_id: string
+          reversed_at?: string | null
+          reversed_by?: string | null
           sender_id: string
         }
         Update: {
@@ -637,6 +641,8 @@ export type Database = {
           id?: string
           message?: string | null
           receiver_id?: string
+          reversed_at?: string | null
+          reversed_by?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -1413,6 +1419,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      staff_reverse_transfer: { Args: { p_tx_id: string }; Returns: undefined }
       start_game_session: {
         Args: { p_party_id: string }
         Returns: {
