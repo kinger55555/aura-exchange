@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatAura, formatDisplayName } from "@/lib/rank";
+import { formatAura } from "@/lib/rank";
+import { DisplayName } from "@/components/DisplayName";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number; title_text?: string | null; title_position?: "prefix" | "suffix" };
+type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number; title_text?: string | null; title_position?: "prefix" | "suffix"; title_is_glitch?: boolean };
 
 function LeaderboardPage() {
   const { user, loading } = useAuth();
@@ -53,7 +54,7 @@ function LeaderboardPage() {
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, nickname, aura_balance, current_rank, title_position, title:equipped_title_id(text)")
+          .select("id, nickname, aura_balance, current_rank, title_position, title:equipped_title_id(text, is_glitch)")
           .not("nickname", "is", null)
           .order("aura_balance", { ascending: false })
           .limit(500),
@@ -68,6 +69,7 @@ function LeaderboardPage() {
         current_rank: r.current_rank ?? 1,
         title_text: r.title?.text ?? null,
         title_position: r.title_position ?? "prefix",
+        title_is_glitch: Boolean(r.title?.is_glitch),
       })).filter((r: any) => !bannedIds.has(r.id)));
       if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
       const me = (data ?? []).find((r: any) => r.id === user.id);
@@ -185,7 +187,7 @@ function LeaderboardPage() {
                           params={{ nickname: r.nickname ?? "" }}
                           className="hover:underline hover:text-secondary transition-colors"
                         >
-                          {formatDisplayName(r.nickname, r.title_text, r.title_position)}
+                          <DisplayName nickname={r.nickname} titleText={r.title_text} titlePosition={r.title_position} isGlitch={r.title_is_glitch} />
                         </Link>
                         <StaffBadgeFor userId={r.id} className="ml-1" />
                         {isMe && (

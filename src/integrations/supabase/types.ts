@@ -241,6 +241,7 @@ export type Database = {
       profiles: {
         Row: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -256,6 +257,7 @@ export type Database = {
         }
         Insert: {
           aura_balance?: number
+          bunker_pending?: boolean
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
@@ -271,6 +273,7 @@ export type Database = {
         }
         Update: {
           aura_balance?: number
+          bunker_pending?: boolean
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
@@ -587,6 +590,7 @@ export type Database = {
           cost: number | null
           created_at: string
           id: string
+          is_glitch: boolean
           text: string
           tier: string
           unlock_condition: string | null
@@ -596,6 +600,7 @@ export type Database = {
           cost?: number | null
           created_at?: string
           id?: string
+          is_glitch?: boolean
           text: string
           tier: string
           unlock_condition?: string | null
@@ -605,6 +610,7 @@ export type Database = {
           cost?: number | null
           created_at?: string
           id?: string
+          is_glitch?: boolean
           text?: string
           tier?: string
           unlock_condition?: string | null
@@ -743,6 +749,7 @@ export type Database = {
         Args: { p_keep: number }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -818,6 +825,7 @@ export type Database = {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -841,6 +849,7 @@ export type Database = {
       destroy_all_parties: { Args: never; Returns: undefined }
       destroy_party: { Args: { p_party_id: string }; Returns: undefined }
       ensure_tickets: { Args: never; Returns: undefined }
+      enter_bunker: { Args: never; Returns: Json }
       equip_title: {
         Args: { p_position: string; p_title_id: string }
         Returns: undefined
@@ -915,6 +924,7 @@ export type Database = {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -939,6 +949,7 @@ export type Database = {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1055,10 +1066,12 @@ export type Database = {
       }
       my_quota: { Args: never; Returns: Json }
       my_staff_salary: { Args: never; Returns: number }
+      open_suitcase: { Args: never; Returns: Json }
       owner_rank_up: {
         Args: { p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1104,6 +1117,7 @@ export type Database = {
         Args: never
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1128,6 +1142,7 @@ export type Database = {
         Args: never
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1154,6 +1169,7 @@ export type Database = {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1261,6 +1277,7 @@ export type Database = {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1285,6 +1302,7 @@ export type Database = {
         Args: { p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1326,6 +1344,7 @@ export type Database = {
         Args: { p_enabled: boolean; p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1350,6 +1369,7 @@ export type Database = {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1374,6 +1394,7 @@ export type Database = {
         Args: { p_nickname: string; p_rank: number }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
@@ -1399,6 +1420,7 @@ export type Database = {
         Args: { p_amount: number; p_reason?: string; p_user_id: string }
         Returns: {
           aura_balance: number
+          bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null

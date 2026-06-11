@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatAura, formatDisplayName, TIER_ORDER, tierTone } from "@/lib/rank";
-import { ArrowUp, Coins, Send, Ticket, Sparkles, Crown, Star, Lock, Check, ArrowLeftRight } from "lucide-react";
+import { formatAura, TIER_ORDER, tierTone } from "@/lib/rank";
+import { DisplayName } from "@/components/DisplayName";
+import { GlitchText } from "@/components/GlitchText";
+import { ArrowUp, Coins, Send, Ticket, Sparkles, Crown, Star, Lock, Check, ArrowLeftRight, Briefcase, X, DoorClosed } from "lucide-react";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({ meta: [{ title: "Shop — Absolute Communism" }] }),
@@ -34,6 +36,7 @@ type Title = {
   buyable: boolean;
   cost: number | null;
   unlock_condition: string | null;
+  is_glitch?: boolean;
 };
 
 function StatRow({ icon: Icon, label, from, to }: { icon: any; label: string; from: string | number; to: string | number }) {
@@ -71,11 +74,25 @@ function ShopPage() {
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [working, setWorking] = useState(false);
 
+  // Suitcase state
+  const [suitcaseBusy, setSuitcaseBusy] = useState(false);
+  const [spins, setSpins] = useState<(boolean | null)[]>([null, null, null, null, null]);
+  const [revealIdx, setRevealIdx] = useState(-1);
+  const [suitcaseResult, setSuitcaseResult] = useState<null | {
+    tier: string | null;
+    title: { id: string; text: string; tier: string } | null;
+    refunded: boolean;
+    bunker_unlocked: boolean;
+  }>(null);
+  const [bunkerPending, setBunkerPending] = useState(false);
+  const [bunkerBusy, setBunkerBusy] = useState(false);
+  const [bunkerResult, setBunkerResult] = useState<null | { success: boolean; title: { text: string; is_glitch?: boolean } | null }>(null);
+
   const load = useCallback(async () => {
     if (!user) return;
     const { data: p } = await supabase
       .from("profiles")
-      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position")
+      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, bunker_pending")
       .eq("id", user.id)
       .maybeSingle();
     if (!p) return;
@@ -84,6 +101,7 @@ function ShopPage() {
     setNickname((p as any).nickname ?? "");
     setEquipped((p as any).equipped_title_id ?? null);
     setPosition((p as any).title_position ?? "prefix");
+    setBunkerPending(Boolean((p as any).bunker_pending));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }, { data: titles }, { data: mine }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
@@ -192,6 +210,68 @@ function ShopPage() {
       load();
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setWorking(false); }
+  }
+
+  async function openSuitcase() {
+    if (suitcaseBusy) return;
+    setSuitcaseBusy(true);
+    setSuitcaseResult(null);
+    setBunkerResult(null);
+    setSpins([null, null, null, null, null]);
+    setRevealIdx(-1);
+    try {
+      const { data, error } = await supabase.rpc("open_suitcase");
+      if (error) throw error;
+      const res = data as any;
+      const arr: boolean[] = res.spins ?? [];
+      // Reveal each slot sequentially
+      for (let i = 0; i < arr.length; i++) {
+        await new Promise((r) => setTimeout(r, 450));
+        setSpins((prev) => {
+          const copy = [...prev];
+          copy[i] = arr[i];
+          return copy;
+        });
+        setRevealIdx(i);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+      setSuitcaseResult({
+        tier: res.tier,
+        title: res.title,
+        refunded: Boolean(res.refunded),
+        bunker_unlocked: Boolean(res.bunker_unlocked),
+      });
+      if (res.bunker_unlocked) setBunkerPending(true);
+      if (res.refunded) toast.message("All titles in that tier owned — 5 Aura refunded");
+      else if (res.title) toast.success(`Acquired "${res.title.text.trim()}"`);
+      else toast.message("The suitcase was empty.");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The suitcase jammed");
+    } finally {
+      setSuitcaseBusy(false);
+    }
+  }
+
+  async function enterBunker() {
+    if (bunkerBusy) return;
+    setBunkerBusy(true);
+    setBunkerResult(null);
+    try {
+      const { data, error } = await supabase.rpc("enter_bunker");
+      if (error) throw error;
+      const res = data as any;
+      await new Promise((r) => setTimeout(r, 600));
+      setBunkerResult({ success: Boolean(res.success), title: res.title });
+      setBunkerPending(false);
+      if (res.success && res.title) toast.success(`You found the GLITCH.`);
+      else toast.message("The bunker is empty.");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The bunker is sealed");
+    } finally {
+      setBunkerBusy(false);
+    }
   }
 
   const equippedTitle = useMemo(() => catalog.find((c) => c.id === equipped) ?? null, [catalog, equipped]);
@@ -307,13 +387,100 @@ function ShopPage() {
                 </Button>
               </div>
             </section>
+
+            <section className="border-2 border-secondary bg-card p-4 shadow-[4px_4px_0_0_var(--secondary)]">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-display text-lg uppercase text-secondary-foreground bg-secondary inline-block px-2 flex items-center gap-1">
+                  <Briefcase className="size-4" /> The Suitcase
+                </h2>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground">5 Aura</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Five sealed locks. Each pops open at <span className="text-primary">1-in-5</span> odds. The more locks that open, the rarer the title that crawls out. Five-for-five and the bunker door swings open.
+              </p>
+
+              <div className="grid grid-cols-5 gap-2 mb-3">
+                {spins.map((s, i) => (
+                  <div
+                    key={i}
+                    className={`aspect-square border-2 flex items-center justify-center font-display text-2xl transition-all ${
+                      s === null
+                        ? "border-dashed border-primary/30 text-muted-foreground"
+                        : s
+                        ? "border-secondary bg-secondary/20 text-secondary animate-scale-in"
+                        : "border-destructive bg-destructive/10 text-destructive animate-scale-in"
+                    }`}
+                  >
+                    {s === null ? <span className="text-xs opacity-50">{i + 1}</span> : s ? <Star className="size-6 fill-current" /> : <X className="size-6" />}
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                disabled={suitcaseBusy || balance < 5}
+                onClick={openSuitcase}
+                className="w-full h-12 bg-secondary text-secondary-foreground font-display uppercase tracking-widest text-base"
+              >
+                <Briefcase className="size-5 mr-2" />
+                {suitcaseBusy ? "Cracking…" : balance < 5 ? "Insufficient Aura" : "Open Suitcase (5 Aura)"}
+              </Button>
+
+              {suitcaseResult && !suitcaseBusy && (
+                <div className="mt-3 border-t-2 border-dashed border-primary/30 pt-3 animate-fade-in">
+                  {suitcaseResult.refunded ? (
+                    <p className="text-sm text-muted-foreground">You already own every title in <span className={tierTone(suitcaseResult.tier ?? "")}>{suitcaseResult.tier}</span>. 5 Aura refunded.</p>
+                  ) : suitcaseResult.title ? (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground uppercase tracking-widest text-xs">Acquired:</span>{" "}
+                      <span className={`font-mono ${tierTone(suitcaseResult.title.tier)}`}>{suitcaseResult.title.text.trim()}</span>{" "}
+                      <span className="text-[10px] uppercase text-muted-foreground">[{suitcaseResult.title.tier}]</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">The suitcase was empty. The State keeps your 5 Aura.</p>
+                  )}
+                </div>
+              )}
+
+              {bunkerPending && (
+                <div className="mt-4 border-2 border-destructive bg-destructive/10 p-3 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DoorClosed className="size-5 text-destructive" />
+                    <p className="font-display uppercase text-destructive tracking-widest text-sm">Bunker Unlocked</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    The suitcase opens. Beneath it: a steel door. One in five enters something nobody is meant to see.
+                  </p>
+                  <Button
+                    disabled={bunkerBusy}
+                    onClick={enterBunker}
+                    variant="destructive"
+                    className="w-full h-11 font-display uppercase tracking-widest"
+                  >
+                    {bunkerBusy ? "Entering…" : "Enter the Bunker"}
+                  </Button>
+                </div>
+              )}
+
+              {bunkerResult && !bunkerBusy && (
+                <div className="mt-3 border-t-2 border-dashed border-destructive/40 pt-3 animate-fade-in">
+                  {bunkerResult.success && bunkerResult.title ? (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground uppercase tracking-widest text-xs">Found:</span>{" "}
+                      <span className="text-destructive font-bold">[<GlitchText length={Math.max(4, (bunkerResult.title.text ?? "").trim().length)} />]</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">The bunker is empty. Dust settles.</p>
+                  )}
+                </div>
+              )}
+            </section>
           </TabsContent>
 
           <TabsContent value="titles" className="space-y-4 mt-3">
             <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
               <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Your Identity</p>
               <p className="font-display text-2xl text-primary mt-1 break-words">
-                {formatDisplayName(nickname, equippedTitle?.text, position)}
+                <DisplayName nickname={nickname} titleText={equippedTitle?.text} titlePosition={position} isGlitch={equippedTitle?.is_glitch} />
               </p>
               {equippedTitle && (
                 <div className="mt-3 flex flex-wrap gap-2">
