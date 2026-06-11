@@ -1273,6 +1273,7 @@ export type Database = {
         }
       }
       run_weekly_payroll: { Args: never; Returns: undefined }
+      sell_title: { Args: { p_title_id: string }; Returns: number }
       send_aura: {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
         Returns: {
