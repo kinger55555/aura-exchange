@@ -78,7 +78,7 @@ function ShopPage() {
     if (!user) return;
     const { data: p } = await supabase
       .from("profiles")
-      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position")
+      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, bunker_pending")
       .eq("id", user.id)
       .maybeSingle();
     if (!p) return;
@@ -87,6 +87,7 @@ function ShopPage() {
     setNickname((p as any).nickname ?? "");
     setEquipped((p as any).equipped_title_id ?? null);
     setPosition((p as any).title_position ?? "prefix");
+    setBunkerPending(Boolean((p as any).bunker_pending));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }, { data: titles }, { data: mine }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
