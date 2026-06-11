@@ -550,20 +550,35 @@ function ShopPage() {
                     <ul className="divide-y divide-dashed divide-primary/15">
                       {myTitles.map((t) => {
                         const isEq = equipped === t.id;
+                        const canSell = (t.cost ?? 0) > 0;
+                        const sellPrice = canSell ? Math.floor((t.cost! / 5) * 4) : 0;
                         return (
                           <li key={t.id} className="p-3 flex items-center gap-2">
                             <div className="flex-1 min-w-0">
                               <p className={`font-mono text-sm ${tierTone(t.tier)} truncate`}>{t.text}</p>
-                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t.tier}</p>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                                {t.tier}
+                                {canSell && (
+                                  <span className="ml-2 text-primary">Sell {formatAura(sellPrice)}</span>
+                                )}
+                              </p>
                             </div>
-                            {isEq ? (
-                              <span className="text-xs uppercase tracking-widest text-secondary-foreground bg-secondary px-2 py-0.5">Equipped {position}</span>
-                            ) : (
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="outline" disabled={working} onClick={() => equipTitle(t, "prefix")}>Before</Button>
-                                <Button size="sm" variant="outline" disabled={working} onClick={() => equipTitle(t, "suffix")}>After</Button>
-                              </div>
-                            )}
+                            <div className="flex flex-wrap gap-1 justify-end">
+                              {isEq && (
+                                <span className="text-xs uppercase tracking-widest text-secondary-foreground bg-secondary px-2 py-0.5">Equipped {position}</span>
+                              )}
+                              {!isEq && (
+                                <>
+                                  <Button size="sm" variant="outline" disabled={working} onClick={() => equipTitle(t, "prefix")}>Before</Button>
+                                  <Button size="sm" variant="outline" disabled={working} onClick={() => equipTitle(t, "suffix")}>After</Button>
+                                </>
+                              )}
+                              {canSell && (
+                                <Button size="sm" variant="destructive" disabled={working} onClick={() => sellTitle(t, sellPrice)}>
+                                  Sell
+                                </Button>
+                              )}
+                            </div>
                           </li>
                         );
                       })}
