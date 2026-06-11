@@ -212,6 +212,68 @@ function ShopPage() {
     finally { setWorking(false); }
   }
 
+  async function openSuitcase() {
+    if (suitcaseBusy) return;
+    setSuitcaseBusy(true);
+    setSuitcaseResult(null);
+    setBunkerResult(null);
+    setSpins([null, null, null, null, null]);
+    setRevealIdx(-1);
+    try {
+      const { data, error } = await supabase.rpc("open_suitcase");
+      if (error) throw error;
+      const res = data as any;
+      const arr: boolean[] = res.spins ?? [];
+      // Reveal each slot sequentially
+      for (let i = 0; i < arr.length; i++) {
+        await new Promise((r) => setTimeout(r, 450));
+        setSpins((prev) => {
+          const copy = [...prev];
+          copy[i] = arr[i];
+          return copy;
+        });
+        setRevealIdx(i);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+      setSuitcaseResult({
+        tier: res.tier,
+        title: res.title,
+        refunded: Boolean(res.refunded),
+        bunker_unlocked: Boolean(res.bunker_unlocked),
+      });
+      if (res.bunker_unlocked) setBunkerPending(true);
+      if (res.refunded) toast.message("All titles in that tier owned — 5 Aura refunded");
+      else if (res.title) toast.success(`Acquired "${res.title.text.trim()}"`);
+      else toast.message("The suitcase was empty.");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The suitcase jammed");
+    } finally {
+      setSuitcaseBusy(false);
+    }
+  }
+
+  async function enterBunker() {
+    if (bunkerBusy) return;
+    setBunkerBusy(true);
+    setBunkerResult(null);
+    try {
+      const { data, error } = await supabase.rpc("enter_bunker");
+      if (error) throw error;
+      const res = data as any;
+      await new Promise((r) => setTimeout(r, 600));
+      setBunkerResult({ success: Boolean(res.success), title: res.title });
+      setBunkerPending(false);
+      if (res.success && res.title) toast.success(`You found the GLITCH.`);
+      else toast.message("The bunker is empty.");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "The bunker is sealed");
+    } finally {
+      setBunkerBusy(false);
+    }
+  }
+
   const equippedTitle = useMemo(() => catalog.find((c) => c.id === equipped) ?? null, [catalog, equipped]);
   const byTier = useMemo(() => {
     const map: Record<string, Title[]> = {};
