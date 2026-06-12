@@ -30,6 +30,123 @@ const rules = [
           },
         ],
       },
+      {
+        id: "1.2",
+        title: "Aura Exploitation & Unauthorized Transfers",
+        children: [
+          {
+            id: "1.2.1",
+            title: "Automated Collection & Botting",
+            body: `The use of scripts, bots, macros, browser extensions, or any automated tool to generate, collect, or transfer Aura is strictly prohibited. This includes automated rank grinding and unattended gameplay loops.
+
+Punishment: Permanent ban of all detected accounts. Confiscation of all Aura, titles, and ranks.`,
+          },
+          {
+            id: "1.2.2",
+            title: "Coordinated Self-Dealing & Muling",
+            body: `Creating or controlling accounts whose primary purpose is to funnel Aura, titles, or rank progress to another account is a crime against the collective. This includes using friends or alt networks as conduits.
+
+Punishment: Permanent ban of all accounts involved. Reversal of all transferred Aura and items.`,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "2",
+    title: "Conduct & Decency",
+    children: [
+      {
+        id: "2.1",
+        title: "Harassment & Disruption",
+        children: [
+          {
+            id: "2.1.1",
+            title: "Targeted Abuse & Threats",
+            body: `Repeated hostile messages, threats of real-world harm, doxxing, or sustained targeted harassment of any comrade is forbidden. The State protects the collective peace.
+
+Punishment: 7-day silence on first offense. 30-day silence on second. Permanent ban on third. Severe cases result in immediate permanent ban.`,
+          },
+          {
+            id: "2.1.2",
+            title: "Hate Speech & Extremism",
+            body: `Any promotion of hate speech, discrimination, or extremist ideology against protected groups is a betrayal of collective unity.
+
+Punishment: Immediate permanent ban. No appeal.`,
+          },
+        ],
+      },
+      {
+        id: "2.2",
+        title: "Impersonation & Fraud",
+        children: [
+          {
+            id: "2.2.1",
+            title: "False Representation of Authority",
+            body: `Impersonating staff, moderators, or the Owner—whether by nickname, title, badge, or direct claim—is classified as counter-revolutionary sabotage.
+
+Punishment: Immediate permanent ban. Confiscation of all fraudulently obtained goods.`,
+          },
+          {
+            id: "2.2.2",
+            title: "Scamming & Deceptive Trades",
+            body: `Deceiving comrades through false promises, chargebacks, or misrepresentation in any exchange involving Aura, titles, or tickets is strictly prohibited.
+
+Punishment: Full reversal of trades where possible. 30-day ban on first offense. Permanent ban on repeat offenses.`,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "3",
+    title: "Game Integrity",
+    children: [
+      {
+        id: "3.1",
+        title: "Exploits & Bugs",
+        children: [
+          {
+            id: "3.1.1",
+            title: "Intentional Abuse of Glitches",
+            body: `Knowingly using a bug, glitch, or unintended mechanic to gain Aura, titles, ranks, or any advantage is theft from the collective. Reporting bugs through proper channels is rewarded; exploiting them is punished.
+
+Punishment: Rollback of all ill-gotten gains. 14-day ban on first offense. Permanent ban on second.`,
+          },
+        ],
+      },
+      {
+        id: "3.2",
+        title: "External Commerce",
+        children: [
+          {
+            id: "3.2.1",
+            title: "Real-Money Trading (RMT)",
+            body: `Selling, buying, or trading Aura, accounts, titles, or any in-game asset for real-world currency, crypto, or goods on external platforms is prohibited. The State economy is closed.
+
+Punishment: Permanent ban of buyer and seller. Blacklist of associated payment accounts where traceable.`,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "4",
+    title: "Enforcement & Appeals",
+    children: [
+      {
+        id: "4.1",
+        title: "Judicial Process",
+        children: [
+          {
+            id: "4.1.1",
+            title: "Right of Appeal",
+            body: `Comrades may appeal bans and punishments through the Justice system once per incident. Appeals must include evidence. Frivolous or repeat appeals without new evidence will be denied and may extend the silence period.
+
+Note: Appeals for permanent bans involving multi-accounting, RMT, or hate speech are rarely overturned. The State remembers.`,
+          },
+        ],
+      },
     ],
   },
 ];
