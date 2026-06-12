@@ -132,6 +132,43 @@ function AdminPage() {
         </section>
 
         <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center">Reverse transfers from the Dashboard ledger.</p>
+
+        {myRole === "owner" && (
+          <section className="border-2 border-destructive bg-card p-4 shadow-[4px_4px_0_0_var(--destructive)] space-y-3">
+            <h2 className="font-display text-lg uppercase text-destructive">Amnesty Program</h2>
+            <p className="text-xs text-muted-foreground">
+              Run AuraGuard to file reports on suspicious email clusters, then execute the amnesty reset to ban every declared alt and wipe the realm.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="uppercase tracking-widest text-xs"
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.rpc("auraguard_email_scan" as any);
+                    if (error) throw error;
+                    toast.success(`AuraGuard filed ${(data as any)?.clusters_filed ?? 0} report(s)`);
+                  } catch (e: any) { toast.error(e.message ?? "Scan failed"); }
+                }}
+              >
+                Run AuraGuard
+              </Button>
+              <Button
+                className="bg-destructive text-destructive-foreground uppercase tracking-widest text-xs font-display"
+                onClick={async () => {
+                  if (!confirm("EXECUTE AMNESTY RESET?\n\nThis will permanently ban every declared alt and wipe Aura/titles/history for all non-staff comrades. Staff are preserved.")) return;
+                  try {
+                    const { data, error } = await supabase.rpc("amnesty_process" as any);
+                    if (error) throw error;
+                    toast.success(`Amnesty complete. ${(data as any)?.banned ?? 0} alt(s) banned.`);
+                  } catch (e: any) { toast.error(e.message ?? "Reset failed"); }
+                }}
+              >
+                Execute Reset
+              </Button>
+            </div>
+          </section>
+        )}
       </div>
       <MobileNav />
     </main>

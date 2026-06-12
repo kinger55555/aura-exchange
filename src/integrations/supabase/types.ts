@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      amnesty_declarations: {
+        Row: {
+          alt_nickname_raw: string
+          alt_user_id: string | null
+          created_at: string
+          id: string
+          main_user_id: string
+        }
+        Insert: {
+          alt_nickname_raw: string
+          alt_user_id?: string | null
+          created_at?: string
+          id?: string
+          main_user_id: string
+        }
+        Update: {
+          alt_nickname_raw?: string
+          alt_user_id?: string | null
+          created_at?: string
+          id?: string
+          main_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amnesty_declarations_alt_user_id_fkey"
+            columns: ["alt_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "amnesty_declarations_main_user_id_fkey"
+            columns: ["main_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aura_bank: {
         Row: {
           balance: number
@@ -240,13 +279,17 @@ export type Database = {
       }
       profiles: {
         Row: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -256,13 +299,17 @@ export type Database = {
           title_position: string
         }
         Insert: {
+          amnesty_acknowledged?: boolean
+          amnesty_main_id?: string | null
           aura_balance?: number
           bunker_pending?: boolean
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
+          free_suitcases?: number
           gray_aura?: number
           id: string
+          is_amnesty_alt?: boolean
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
@@ -272,13 +319,17 @@ export type Database = {
           title_position?: string
         }
         Update: {
+          amnesty_acknowledged?: boolean
+          amnesty_main_id?: string | null
           aura_balance?: number
           bunker_pending?: boolean
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
+          free_suitcases?: number
           gray_aura?: number
           id?: string
+          is_amnesty_alt?: boolean
           last_daily_ticket_at?: string | null
           last_special_ticket_at?: string | null
           nickname?: string | null
@@ -288,6 +339,13 @@ export type Database = {
           title_position?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_amnesty_main_id_fkey"
+            columns: ["amnesty_main_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_equipped_title_id_fkey"
             columns: ["equipped_title_id"]
@@ -745,16 +803,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      amnesty_process: { Args: never; Returns: Json }
+      auraguard_email_scan: { Args: never; Returns: Json }
       burn_aura: {
         Args: { p_keep: number }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -820,17 +884,50 @@ export type Database = {
               isSetofReturn: false
             }
           }
-      delete_my_account: { Args: never; Returns: undefined }
-      denounce_comrade: {
-        Args: { p_amount: number; p_reason?: string; p_recipient: string }
+      declare_amnesty: {
+        Args: { p_alts: string[] }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
+          last_daily_ticket_at: string | null
+          last_special_ticket_at: string | null
+          nickname: string | null
+          rank_before_gray: number | null
+          test_mode: boolean
+          test_mode_saved_balance: number | null
+          title_position: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      delete_my_account: { Args: never; Returns: undefined }
+      denounce_comrade: {
+        Args: { p_amount: number; p_reason?: string; p_recipient: string }
+        Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
+          aura_balance: number
+          bunker_pending: boolean
+          created_at: string
+          current_rank: number
+          equipped_title_id: string | null
+          free_suitcases: number
+          gray_aura: number
+          id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -923,13 +1020,17 @@ export type Database = {
       grant_aura: {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -948,13 +1049,17 @@ export type Database = {
       grant_gray_aura: {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1070,13 +1175,17 @@ export type Database = {
       owner_rank_up: {
         Args: { p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1116,13 +1225,17 @@ export type Database = {
       purchase_rank: {
         Args: never
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1141,13 +1254,17 @@ export type Database = {
       purchase_rank_gray: {
         Args: never
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1168,13 +1285,17 @@ export type Database = {
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1277,13 +1398,17 @@ export type Database = {
       send_aura: {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1302,13 +1427,17 @@ export type Database = {
       set_nickname: {
         Args: { p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1344,13 +1473,17 @@ export type Database = {
       set_test_mode: {
         Args: { p_enabled: boolean; p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1369,13 +1502,17 @@ export type Database = {
       set_user_aura: {
         Args: { p_amount: number; p_nickname: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1394,13 +1531,17 @@ export type Database = {
       set_user_rank: {
         Args: { p_nickname: string; p_rank: number }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
@@ -1420,13 +1561,17 @@ export type Database = {
       staff_punish: {
         Args: { p_amount: number; p_reason?: string; p_user_id: string }
         Returns: {
+          amnesty_acknowledged: boolean
+          amnesty_main_id: string | null
           aura_balance: number
           bunker_pending: boolean
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          free_suitcases: number
           gray_aura: number
           id: string
+          is_amnesty_alt: boolean
           last_daily_ticket_at: string | null
           last_special_ticket_at: string | null
           nickname: string | null
