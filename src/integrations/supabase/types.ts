@@ -1169,6 +1169,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      my_private_profile: { Args: never; Returns: Json }
       my_quota: { Args: never; Returns: Json }
       my_staff_salary: { Args: never; Returns: number }
       open_suitcase: { Args: never; Returns: Json }
