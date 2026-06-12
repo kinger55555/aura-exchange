@@ -10,6 +10,7 @@ import {
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AmnestyGate } from "@/components/AmnestyGate";
 
 import appCss from "../styles.css?url";
 
@@ -136,6 +137,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <AmnestyGate />
       <Toaster richColors position="top-center" theme="light" />
     </QueryClientProvider>
   );
