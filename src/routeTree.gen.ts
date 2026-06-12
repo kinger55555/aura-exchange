@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -31,6 +32,11 @@ const ShopRoute = ShopRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
+    | '/rules'
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
+    | '/rules'
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/onboarding'
     | '/reset-password'
+    | '/rules'
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
   ProfileNicknameRoute: typeof ProfileNicknameRoute
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,
   ProfileNicknameRoute: ProfileNicknameRoute,
@@ -313,3 +334,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
