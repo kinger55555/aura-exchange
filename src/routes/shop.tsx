@@ -91,18 +91,21 @@ function ShopPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data: p } = await supabase
-      .from("profiles")
-      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, bunker_pending, free_suitcases")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [{ data: p }, { data: priv }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, free_suitcases")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase.rpc("my_private_profile" as any),
+    ]);
     if (!p) return;
     setBalance(Number((p as any).aura_balance));
     setGray(Number((p as any).gray_aura ?? 0));
     setNickname((p as any).nickname ?? "");
     setEquipped((p as any).equipped_title_id ?? null);
     setPosition((p as any).title_position ?? "prefix");
-    setBunkerPending(Boolean((p as any).bunker_pending));
+    setBunkerPending(Boolean((priv as any)?.bunker_pending));
     setFreeSuitcases(Number((p as any).free_suitcases ?? 0));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }, { data: titles }, { data: mine }] = await Promise.all([

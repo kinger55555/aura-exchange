@@ -18,12 +18,9 @@ export function AmnestyGate() {
   useEffect(() => {
     if (loading || !user) { setOpen(false); return; }
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("amnesty_acknowledged, is_amnesty_alt")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (data && !(data as any).amnesty_acknowledged && !(data as any).is_amnesty_alt) {
+      const { data } = await supabase.rpc("my_private_profile" as any);
+      const row = (data ?? {}) as any;
+      if (row && !row.amnesty_acknowledged && !row.is_amnesty_alt) {
         setOpen(true);
       }
     })();
