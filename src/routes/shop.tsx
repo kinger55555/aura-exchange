@@ -255,7 +255,7 @@ function ShopPage() {
         bunker_unlocked: Boolean(res.bunker_unlocked),
       });
       if (res.bunker_unlocked) setBunkerPending(true);
-      if (res.refunded) toast.message("All titles in that tier owned — 5 Aura refunded");
+      if (res.refunded) toast.message("All titles in that tier owned — 15 Aura refunded");
       else if (res.title) toast.success(`Acquired "${res.title.text.trim()}"`);
       else toast.message("The suitcase was empty.");
       load();
@@ -407,7 +407,7 @@ function ShopPage() {
                   <Briefcase className="size-4" /> The Suitcase
                 </h2>
                 <span className="text-xs uppercase tracking-widest text-muted-foreground">
-                  {freeSuitcases > 0 ? `${freeSuitcases} FREE` : "5 Aura"}
+                  {freeSuitcases > 0 ? `${freeSuitcases} FREE` : "15 Aura"}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mb-3">
@@ -432,7 +432,7 @@ function ShopPage() {
               </div>
 
               <Button
-                disabled={suitcaseBusy || (freeSuitcases === 0 && balance < 5)}
+                disabled={suitcaseBusy || (freeSuitcases === 0 && balance < 15)}
                 onClick={openSuitcase}
                 className="w-full h-12 bg-secondary text-secondary-foreground font-display uppercase tracking-widest text-base"
               >
@@ -441,15 +441,15 @@ function ShopPage() {
                   ? "Cracking…"
                   : freeSuitcases > 0
                   ? `Open Free Suitcase (${freeSuitcases} left)`
-                  : balance < 5
+                  : balance < 15
                   ? "Insufficient Aura"
-                  : "Open Suitcase (5 Aura)"}
+                  : "Open Suitcase (15 Aura)"}
               </Button>
 
               {suitcaseResult && !suitcaseBusy && (
                 <div className="mt-3 border-t-2 border-dashed border-primary/30 pt-3 animate-fade-in">
                   {suitcaseResult.refunded ? (
-                    <p className="text-sm text-muted-foreground">You already own every title in <span className={tierTone(suitcaseResult.tier ?? "")}>{suitcaseResult.tier}</span>. 5 Aura refunded.</p>
+                    <p className="text-sm text-muted-foreground">You already own every title in <span className={tierTone(suitcaseResult.tier ?? "")}>{suitcaseResult.tier}</span>. 15 Aura refunded.</p>
                   ) : suitcaseResult.title ? (
                     <p className="text-sm">
                       <span className="text-muted-foreground uppercase tracking-widest text-xs">Acquired:</span>{" "}
@@ -457,7 +457,7 @@ function ShopPage() {
                       <span className="text-[10px] uppercase text-muted-foreground">[{suitcaseResult.title.tier}]</span>
                     </p>
                   ) : (
-                    <p className="text-sm text-muted-foreground">The suitcase was empty. The State keeps your 5 Aura.</p>
+                    <p className="text-sm text-muted-foreground">The suitcase was empty. The State keeps your 15 Aura.</p>
                   )}
                 </div>
               )}
