@@ -406,7 +406,9 @@ function ShopPage() {
                 <h2 className="font-display text-lg uppercase text-secondary-foreground bg-secondary inline-block px-2 flex items-center gap-1">
                   <Briefcase className="size-4" /> The Suitcase
                 </h2>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground">5 Aura</span>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground">
+                  {freeSuitcases > 0 ? `${freeSuitcases} FREE` : "5 Aura"}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground mb-3">
                 Five sealed locks. Each pops open at <span className="text-primary">1-in-5</span> odds. The more locks that open, the rarer the title that crawls out. Five-for-five and the bunker door swings open.
@@ -430,12 +432,18 @@ function ShopPage() {
               </div>
 
               <Button
-                disabled={suitcaseBusy || balance < 5}
+                disabled={suitcaseBusy || (freeSuitcases === 0 && balance < 5)}
                 onClick={openSuitcase}
                 className="w-full h-12 bg-secondary text-secondary-foreground font-display uppercase tracking-widest text-base"
               >
                 <Briefcase className="size-5 mr-2" />
-                {suitcaseBusy ? "Cracking…" : balance < 5 ? "Insufficient Aura" : "Open Suitcase (5 Aura)"}
+                {suitcaseBusy
+                  ? "Cracking…"
+                  : freeSuitcases > 0
+                  ? `Open Free Suitcase (${freeSuitcases} left)`
+                  : balance < 5
+                  ? "Insufficient Aura"
+                  : "Open Suitcase (5 Aura)"}
               </Button>
 
               {suitcaseResult && !suitcaseBusy && (
