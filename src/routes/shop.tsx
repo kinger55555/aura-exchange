@@ -87,12 +87,13 @@ function ShopPage() {
   const [bunkerPending, setBunkerPending] = useState(false);
   const [bunkerBusy, setBunkerBusy] = useState(false);
   const [bunkerResult, setBunkerResult] = useState<null | { success: boolean; title: { text: string; is_glitch?: boolean } | null }>(null);
+  const [freeSuitcases, setFreeSuitcases] = useState(0);
 
   const load = useCallback(async () => {
     if (!user) return;
     const { data: p } = await supabase
       .from("profiles")
-      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, bunker_pending")
+      .select("nickname, aura_balance, gray_aura, current_rank, equipped_title_id, title_position, bunker_pending, free_suitcases")
       .eq("id", user.id)
       .maybeSingle();
     if (!p) return;
@@ -102,6 +103,7 @@ function ShopPage() {
     setEquipped((p as any).equipped_title_id ?? null);
     setPosition((p as any).title_position ?? "prefix");
     setBunkerPending(Boolean((p as any).bunker_pending));
+    setFreeSuitcases(Number((p as any).free_suitcases ?? 0));
     const cr = (p as any).current_rank ?? 1;
     const [{ data: c }, { data: n }, { data: nn }, { data: titles }, { data: mine }] = await Promise.all([
       supabase.rpc("get_rank_info", { p_rank: cr }),
