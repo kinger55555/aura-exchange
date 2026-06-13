@@ -26,10 +26,25 @@ export type TitleTier = typeof TIER_ORDER[number];
 
 export function tierTone(tier: string): string {
   switch (tier) {
+    case "Common": return "text-stone-400";
     case "Rare": return "text-blue-400";
     case "Epic": return "text-purple-400";
     case "Legendary": return "text-secondary";
     case "Godlike": return "text-destructive font-bold";
     default: return "text-muted-foreground";
   }
+}
+
+/**
+ * Returns the className for a title, accounting for the "Exclusive" rarity
+ * whose color depends on the specific title (glitch → violet, OG → red-gold).
+ */
+export function titleTone(t: { tier?: string | null; is_glitch?: boolean | null; text?: string | null } | null | undefined): string {
+  if (!t) return "";
+  if (t.tier === "Exclusive") {
+    if (t.is_glitch) return "text-violet-400 font-bold drop-shadow-[0_0_6px_rgba(167,139,250,0.6)]";
+    // O.G — antique gold leaning into red, with a subtle pulsing glow
+    return "animate-og-shimmer font-bold";
+  }
+  return tierTone(t.tier ?? "");
 }
