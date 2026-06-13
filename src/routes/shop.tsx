@@ -579,7 +579,9 @@ function ShopPage() {
                         return (
                           <li key={t.id} className="p-3 flex items-center gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className={`font-mono text-sm ${tierTone(t.tier)} truncate`}>{t.text}</p>
+                              <p className={`font-mono text-sm ${titleTone(t)} truncate`}>
+                                {t.is_glitch ? <GlitchText length={Math.max(4, t.text.trim().length)} /> : t.text}
+                              </p>
                               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
                                 {t.tier}
                                 {canSell && (
