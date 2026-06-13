@@ -319,7 +319,7 @@ function Dashboard() {
         <section className="lg:col-span-1 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h2 className="font-display text-4xl uppercase text-primary mt-1 break-words">
-            <DisplayName nickname={profile.nickname} titleText={profile.title_text} titlePosition={profile.title_position} isGlitch={profile.title_is_glitch} />
+            <DisplayName nickname={profile.nickname} titleText={profile.title_text} titlePosition={profile.title_position} isGlitch={profile.title_is_glitch} titleTier={profile.title_tier} />
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
             {rankInfo?.name ?? rank.title}
