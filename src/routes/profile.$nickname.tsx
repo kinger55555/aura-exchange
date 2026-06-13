@@ -189,7 +189,7 @@ function ProfilePage() {
         <section className="border-2 border-primary bg-card p-5 shadow-[4px_4px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h1 className="font-display text-3xl uppercase text-primary mt-1 break-words flex items-center gap-2">
-            <DisplayName nickname={target.nickname} titleText={target.title_text} titlePosition={target.title_position} isGlitch={target.title_is_glitch} />
+            <DisplayName nickname={target.nickname} titleText={target.title_text} titlePosition={target.title_position} isGlitch={target.title_is_glitch} titleTier={target.title_tier} />
             <StaffBadge role={targetRole} />
           </h1>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] uppercase tracking-widest font-bold">
