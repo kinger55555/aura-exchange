@@ -26,7 +26,7 @@ function ProfilePage() {
   const { nickname } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number; title_text: string | null; title_position: "prefix" | "suffix"; title_is_glitch: boolean } | null>(null);
+  const [target, setTarget] = useState<{ id: string; nickname: string; aura_balance: number; gray_aura: number; current_rank: number; title_text: string | null; title_position: "prefix" | "suffix"; title_is_glitch: boolean; title_tier: string | null } | null>(null);
   const [myRole, setMyRole] = useState<Role>(null);
   const targetRole = useStaffRole(target?.id);
   const [busy, setBusy] = useState(true);
@@ -46,7 +46,7 @@ function ProfilePage() {
   const load = useCallback(async () => {
     setBusy(true);
     const { data } = await supabase.from("profiles")
-      .select("id, nickname, aura_balance, gray_aura, current_rank, title_position, title:equipped_title_id(text, is_glitch)")
+      .select("id, nickname, aura_balance, gray_aura, current_rank, title_position, title:equipped_title_id(text, is_glitch, tier)")
       .ilike("nickname", nickname).maybeSingle();
     if (data) {
       setTarget({
@@ -58,6 +58,7 @@ function ProfilePage() {
         title_text: ((data as any).title?.text) ?? null,
         title_position: ((data as any).title_position ?? "prefix"),
         title_is_glitch: Boolean((data as any).title?.is_glitch),
+        title_tier: ((data as any).title?.tier) ?? null,
       });
       setSetAuraVal(Number(data.aura_balance));
     }
