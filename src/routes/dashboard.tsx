@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
+import { EventCard } from "@/components/EventCard";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Absolute Communism" }] }),
@@ -309,6 +310,8 @@ function Dashboard() {
           </div>
         </div>
       </header>
+
+      <EventCard />
 
       <div className="max-w-6xl mx-auto p-6 grid lg:grid-cols-3 gap-6">
         {/* Comrade card */}
