@@ -286,6 +286,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -306,6 +309,9 @@ export type Database = {
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
+          event_claimed_count?: number
+          event_last_claim_day?: number
+          falling_star_pending?: number
           free_suitcases?: number
           gray_aura?: number
           id: string
@@ -326,6 +332,9 @@ export type Database = {
           created_at?: string
           current_rank?: number
           equipped_title_id?: string | null
+          event_claimed_count?: number
+          event_last_claim_day?: number
+          falling_star_pending?: number
           free_suitcases?: number
           gray_aura?: number
           id?: string
@@ -763,6 +772,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _falling_star_event_day: { Args: { at?: string }; Returns: number }
       _rr_payout: {
         Args: {
           p_dissident: string
@@ -815,6 +825,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -835,6 +848,7 @@ export type Database = {
         }
       }
       buy_ticket: { Args: { p_kind: string }; Returns: undefined }
+      claim_event_reward: { Args: never; Returns: Json }
       claim_tickets: { Args: never; Returns: Json }
       create_party:
         | {
@@ -894,6 +908,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -924,6 +941,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -952,6 +972,7 @@ export type Database = {
         Returns: undefined
       }
       evacuate_all_parties: { Args: never; Returns: undefined }
+      event_status: { Args: never; Returns: Json }
       finalize_assembly: {
         Args: { p_session_id: string }
         Returns: {
@@ -1027,6 +1048,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1056,6 +1080,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1172,6 +1199,7 @@ export type Database = {
       my_private_profile: { Args: never; Returns: Json }
       my_quota: { Args: never; Returns: Json }
       my_staff_salary: { Args: never; Returns: number }
+      open_falling_star_case: { Args: never; Returns: Json }
       open_suitcase: { Args: never; Returns: Json }
       owner_rank_up: {
         Args: { p_nickname: string }
@@ -1183,6 +1211,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1233,6 +1264,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1262,6 +1296,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1293,6 +1330,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1406,6 +1446,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1435,6 +1478,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1481,6 +1527,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1510,6 +1559,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1539,6 +1591,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
@@ -1569,6 +1624,9 @@ export type Database = {
           created_at: string
           current_rank: number
           equipped_title_id: string | null
+          event_claimed_count: number
+          event_last_claim_day: number
+          falling_star_pending: number
           free_suitcases: number
           gray_aura: number
           id: string
