@@ -25,7 +25,7 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number; title_text?: string | null; title_position?: "prefix" | "suffix"; title_is_glitch?: boolean };
+type Row = { id: string; nickname: string | null; aura_balance: number; current_rank: number; title_text?: string | null; title_position?: "prefix" | "suffix"; title_is_glitch?: boolean; title_tier?: string | null };
 
 function LeaderboardPage() {
   const { user, loading } = useAuth();
@@ -54,7 +54,7 @@ function LeaderboardPage() {
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, nickname, aura_balance, current_rank, title_position, title:equipped_title_id(text, is_glitch)")
+          .select("id, nickname, aura_balance, current_rank, title_position, title:equipped_title_id(text, is_glitch, tier)")
           .not("nickname", "is", null)
           .order("aura_balance", { ascending: false })
           .limit(500),
@@ -70,6 +70,7 @@ function LeaderboardPage() {
         title_text: r.title?.text ?? null,
         title_position: r.title_position ?? "prefix",
         title_is_glitch: Boolean(r.title?.is_glitch),
+        title_tier: (r.title?.tier) ?? null,
       })).filter((r: any) => !bannedIds.has(r.id)));
       if (rk) setRankNames(Object.fromEntries(rk.map((x: any) => [x.rank, x.name])));
       const me = (data ?? []).find((r: any) => r.id === user.id);
