@@ -188,7 +188,7 @@ function LeaderboardPage() {
                           params={{ nickname: r.nickname ?? "" }}
                           className="hover:underline hover:text-secondary transition-colors"
                         >
-                          <DisplayName nickname={r.nickname} titleText={r.title_text} titlePosition={r.title_position} isGlitch={r.title_is_glitch} />
+                          <DisplayName nickname={r.nickname} titleText={r.title_text} titlePosition={r.title_position} isGlitch={r.title_is_glitch} titleTier={r.title_tier} />
                         </Link>
                         <StaffBadgeFor userId={r.id} className="ml-1" />
                         {isMe && (
