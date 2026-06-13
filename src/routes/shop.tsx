@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatAura, TIER_ORDER, tierTone } from "@/lib/rank";
+import { formatAura, TIER_ORDER, tierTone, titleTone } from "@/lib/rank";
 import { DisplayName } from "@/components/DisplayName";
 import { GlitchText } from "@/components/GlitchText";
 import { ArrowUp, Coins, Send, Ticket, Sparkles, Crown, Star, Lock, Check, ArrowLeftRight, Briefcase, X, DoorClosed } from "lucide-react";
@@ -504,7 +504,7 @@ function ShopPage() {
             <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
               <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Your Identity</p>
               <p className="font-display text-2xl text-primary mt-1 break-words">
-                <DisplayName nickname={nickname} titleText={equippedTitle?.text} titlePosition={position} isGlitch={equippedTitle?.is_glitch} />
+                <DisplayName nickname={nickname} titleText={equippedTitle?.text} titlePosition={position} isGlitch={equippedTitle?.is_glitch} titleTier={equippedTitle?.tier} />
               </p>
               {equippedTitle && (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -579,7 +579,9 @@ function ShopPage() {
                         return (
                           <li key={t.id} className="p-3 flex items-center gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className={`font-mono text-sm ${tierTone(t.tier)} truncate`}>{t.text}</p>
+                              <p className={`font-mono text-sm ${titleTone(t)} truncate`}>
+                                {t.is_glitch ? <GlitchText length={Math.max(4, t.text.trim().length)} /> : t.text}
+                              </p>
                               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
                                 {t.tier}
                                 {canSell && (

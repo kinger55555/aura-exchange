@@ -175,6 +175,20 @@
 }
 .animate-stamp { animation: stamp 0.4s ease-out forwards; }
 
+@keyframes og-shimmer {
+  0%, 100% {
+    color: oklch(0.85 0.18 85);
+    text-shadow: 0 0 6px oklch(0.55 0.22 30 / 0.7), 0 0 12px oklch(0.75 0.18 60 / 0.4);
+  }
+  50% {
+    color: oklch(0.62 0.23 35);
+    text-shadow: 0 0 10px oklch(0.85 0.18 85 / 0.8), 0 0 18px oklch(0.55 0.22 30 / 0.5);
+  }
+}
+.animate-og-shimmer {
+  animation: og-shimmer 2.4s ease-in-out infinite;
+}
+
 .bg-poster-stripes {
   background-image: repeating-linear-gradient(
     45deg,

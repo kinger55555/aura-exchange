@@ -30,7 +30,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
-type Profile = { id: string; nickname: string | null; aura_balance: number; gray_aura?: number; title_text?: string | null; title_position?: "prefix" | "suffix"; title_is_glitch?: boolean };
+type Profile = { id: string; nickname: string | null; aura_balance: number; gray_aura?: number; title_text?: string | null; title_position?: "prefix" | "suffix"; title_is_glitch?: boolean; title_tier?: string | null };
 type Rank = { rank: number; name: string; max_send: number; max_aura: number; multiplier: number; upgrade_cost: number };
 type Ledger = {
   id: string;
@@ -95,7 +95,7 @@ function Dashboard() {
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("id, nickname, aura_balance, gray_aura, title_position, title:equipped_title_id(text, is_glitch)")
+      .select("id, nickname, aura_balance, gray_aura, title_position, title:equipped_title_id(text, is_glitch, tier)")
       .eq("id", user.id)
       .maybeSingle();
     if (data && !data.nickname) {
@@ -110,6 +110,7 @@ function Dashboard() {
       title_text: ((data as any).title?.text) ?? null,
       title_position: ((data as any).title_position ?? "prefix"),
       title_is_glitch: Boolean((data as any).title?.is_glitch),
+      title_tier: ((data as any).title?.tier) ?? null,
     });
     if (data) {
       const { data: r } = await supabase
@@ -318,7 +319,7 @@ function Dashboard() {
         <section className="lg:col-span-1 border-2 border-primary bg-card p-6 shadow-[6px_6px_0_0_var(--primary)]">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Comrade</p>
           <h2 className="font-display text-4xl uppercase text-primary mt-1 break-words">
-            <DisplayName nickname={profile.nickname} titleText={profile.title_text} titlePosition={profile.title_position} isGlitch={profile.title_is_glitch} />
+            <DisplayName nickname={profile.nickname} titleText={profile.title_text} titlePosition={profile.title_position} isGlitch={profile.title_is_glitch} titleTier={profile.title_tier} />
           </h2>
           <div className="mt-1 inline-block px-2 py-0.5 bg-secondary text-secondary-foreground text-xs uppercase tracking-widest font-bold">
             {rankInfo?.name ?? rank.title}
