@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -56,6 +56,7 @@ function GamesPage() {
   const [weeklyGame, setWeeklyGame] = useState("assembly_line");
   const [createOpen, setCreateOpen] = useState(false);
   const [joinPwd, setJoinPwd] = useState<{ id: string; pwd: string } | null>(null);
+  const [search, setSearch] = useState("");
 
   // Create form
   const [pName, setPName] = useState("");
@@ -397,12 +398,26 @@ function GamesPage() {
 
         {/* Open parties list */}
         <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
-          <h2 className="font-display text-lg uppercase text-primary">Open Parties</h2>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h2 className="font-display text-lg uppercase text-primary">Open Parties</h2>
+            <span className="text-xs text-muted-foreground">{parties.length} total</span>
+          </div>
+          <div className="mt-2 relative">
+            <Search className="size-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by party name…"
+              className="pl-8"
+            />
+          </div>
           {parties.length === 0 && (
             <p className="text-sm text-muted-foreground mt-2">No parties yet. Be the vanguard.</p>
           )}
           <ul className="mt-2 divide-y-2 divide-dashed divide-primary/20">
-            {parties.map((p) => {
+            {parties
+              .filter((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()))
+              .map((p) => {
               const full = p.max_players != null && (p.member_count ?? 0) >= p.max_players;
               return (
                 <li key={p.id} className="py-2 flex items-center gap-2">
@@ -426,6 +441,10 @@ function GamesPage() {
               );
             })}
           </ul>
+          {parties.length > 0 &&
+            parties.filter((p) => p.name.toLowerCase().includes(search.trim().toLowerCase())).length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">No parties match "{search}".</p>
+            )}
         </section>
       </div>
 
