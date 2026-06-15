@@ -381,6 +381,33 @@ function GamesPage() {
           </div>
         </section>
 
+        {/* Incoming invites */}
+        {incomingInvites.length > 0 && (
+          <section className="border-2 border-secondary bg-card p-4 shadow-[4px_4px_0_0_var(--secondary)] space-y-2">
+            <h2 className="font-display text-lg uppercase text-secondary-foreground flex items-center gap-2">
+              <Mail className="size-4" /> Party Invites
+            </h2>
+            <ul className="divide-y-2 divide-dashed divide-secondary/30">
+              {incomingInvites.map((inv) => (
+                <li key={inv.id} className="py-2 flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display uppercase text-primary truncate">{inv.party_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      from {inv.from_nickname ?? "?"} · bet {formatAura(inv.aura_bet)}
+                    </p>
+                  </div>
+                  <Button size="sm" disabled={!!myPartyId} onClick={() => acceptInvite(inv.id)} className="uppercase tracking-widest">
+                    <Check className="size-3 mr-1" /> Accept
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => declineInvite(inv.id)}>
+                    <X className="size-3" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* My party */}
         {myParty ? (
           <section className="border-2 border-secondary bg-card p-4 shadow-[4px_4px_0_0_var(--secondary)] space-y-3">
