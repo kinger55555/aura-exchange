@@ -538,6 +538,58 @@ function GamesPage() {
           </Dialog>
         )}
 
+        {/* Looking-for-party: own toggle (when not in a party) */}
+        {!myPartyId && (
+          <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="font-display text-base uppercase text-primary">Search for a party</p>
+                <p className="text-xs text-muted-foreground">
+                  Owners will see you on the comrades-seeking list and can invite you in.
+                </p>
+              </div>
+              <Button
+                onClick={toggleLfp}
+                variant={iAmSeeking ? "outline" : "default"}
+                className="uppercase tracking-widest"
+              >
+                {iAmSeeking ? "Stop searching" : "Search"}
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {/* Seekers list — only when you own a party */}
+        {isOwner && (
+          <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-lg uppercase text-primary flex items-center gap-2">
+                <UserPlus className="size-4" /> Comrades Seeking a Party
+              </h2>
+              <span className="text-xs text-muted-foreground">{seekers.length}</span>
+            </div>
+            {seekers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No one is searching right now.</p>
+            ) : (
+              <ul className="divide-y-2 divide-dashed divide-primary/20">
+                {seekers.map((s) => (
+                  <li key={s.user_id} className="py-2 flex items-center gap-2">
+                    <Users className="size-3 text-muted-foreground" />
+                    <span className="font-mono flex-1 truncate">{s.nickname ?? "?"}</span>
+                    <Button
+                      size="sm"
+                      onClick={() => invitePlayer(s.user_id)}
+                      className="uppercase tracking-widest"
+                    >
+                      <Mail className="size-3 mr-1" /> Invite
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
         {/* Open parties list */}
         <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)]">
           <div className="flex items-center justify-between gap-2 flex-wrap">
