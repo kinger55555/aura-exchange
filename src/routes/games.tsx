@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search, UserPlus, Mail, Check } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -30,6 +30,15 @@ type Party = {
   member_count?: number;
 };
 type Member = { user_id: string; nickname: string | null };
+type Seeker = { user_id: string; nickname: string | null; created_at: string };
+type Invite = {
+  id: string;
+  party_id: string;
+  from_user_id: string;
+  party_name: string;
+  aura_bet: number;
+  from_nickname: string | null;
+};
 type Session = {
   id: string;
   party_id: string;
@@ -57,6 +66,11 @@ function GamesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [joinPwd, setJoinPwd] = useState<{ id: string; pwd: string } | null>(null);
   const [search, setSearch] = useState("");
+  const [seekers, setSeekers] = useState<Seeker[]>([]);
+  const [iAmSeeking, setIAmSeeking] = useState(false);
+  const [incomingInvites, setIncomingInvites] = useState<Invite[]>([]);
+  const lastSessionRef = useRef<string | null>(null);
+  const seenInvitesRef = useRef<Set<string>>(new Set());
 
   // Create form
   const [pName, setPName] = useState("");
@@ -137,6 +151,64 @@ function GamesPage() {
       regular: (tix ?? []).filter((t: any) => t.kind === "regular").length,
       special: (tix ?? []).filter((t: any) => t.kind === "special").length,
     });
+
+    // Seekers (LFP list)
+    const { data: seekRows } = await supabase
+      .from("party_seekers")
+      .select("user_id, created_at")
+      .order("created_at", { ascending: true });
+    const seekIds = (seekRows ?? []).map((r: any) => r.user_id);
+    let seekProfiles: any[] = [];
+    if (seekIds.length) {
+      const { data } = await supabase.from("profiles").select("id, nickname").in("id", seekIds);
+      seekProfiles = data ?? [];
+    }
+    setSeekers(
+      (seekRows ?? []).map((r: any) => ({
+        user_id: r.user_id,
+        created_at: r.created_at,
+        nickname: seekProfiles.find((p) => p.id === r.user_id)?.nickname ?? null,
+      })),
+    );
+    setIAmSeeking(seekIds.includes(user.id));
+
+    // Incoming invites for me
+    const { data: invRows } = await supabase
+      .from("party_invites")
+      .select("id, party_id, from_user_id, status")
+      .eq("to_user_id", user.id)
+      .eq("status", "pending");
+    const invPartyIds = (invRows ?? []).map((r: any) => r.party_id);
+    const fromIds = (invRows ?? []).map((r: any) => r.from_user_id);
+    let invParties: any[] = [];
+    let invProfiles: any[] = [];
+    if (invPartyIds.length) {
+      const { data } = await supabase.from("parties").select("id, name, aura_bet").in("id", invPartyIds);
+      invParties = data ?? [];
+    }
+    if (fromIds.length) {
+      const { data } = await supabase.from("profiles").select("id, nickname").in("id", fromIds);
+      invProfiles = data ?? [];
+    }
+    const newInvites: Invite[] = (invRows ?? []).map((r: any) => {
+      const party = invParties.find((p) => p.id === r.party_id);
+      return {
+        id: r.id,
+        party_id: r.party_id,
+        from_user_id: r.from_user_id,
+        party_name: party?.name ?? "?",
+        aura_bet: Number(party?.aura_bet ?? 0),
+        from_nickname: invProfiles.find((p) => p.id === r.from_user_id)?.nickname ?? null,
+      };
+    });
+    // Toast for any genuinely new incoming invite
+    newInvites.forEach((inv) => {
+      if (!seenInvitesRef.current.has(inv.id)) {
+        seenInvitesRef.current.add(inv.id);
+        toast(`Invite from ${inv.from_nickname ?? "a comrade"} → ${inv.party_name}`);
+      }
+    });
+    setIncomingInvites(newInvites);
   }, [user]);
 
   useEffect(() => {
@@ -147,9 +219,52 @@ function GamesPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "parties" }, loadAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "party_members" }, loadAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "game_sessions" }, loadAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "party_seekers" }, loadAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "party_invites" }, loadAll)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user, loadAll]);
+
+  // Notify members when a shift begins
+  useEffect(() => {
+    if (!session) { lastSessionRef.current = null; return; }
+    const key = `${session.id}:${session.status}`;
+    if (lastSessionRef.current === key) return;
+    const prev = lastSessionRef.current;
+    lastSessionRef.current = key;
+    if (session.status === "in_progress" && prev !== key) {
+      toast.success("Shift has begun — get to work, comrade!");
+    }
+  }, [session]);
+
+  async function toggleLfp() {
+    const { error } = await supabase.rpc("toggle_lfp", { p_on: !iAmSeeking });
+    if (error) return toast.error(error.message);
+    toast.success(iAmSeeking ? "Removed from search list" : "Listed as looking for a party");
+    loadAll();
+  }
+
+  async function invitePlayer(userId: string) {
+    if (!myParty) return;
+    const { error } = await supabase.rpc("invite_to_party", {
+      p_party_id: myParty.id, p_user_id: userId,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Invite sent");
+  }
+
+  async function acceptInvite(id: string) {
+    const { error } = await supabase.rpc("accept_party_invite", { p_invite_id: id });
+    if (error) return toast.error(error.message);
+    toast.success("Joined the party");
+    loadAll();
+  }
+
+  async function declineInvite(id: string) {
+    const { error } = await supabase.rpc("decline_party_invite", { p_invite_id: id });
+    if (error) return toast.error(error.message);
+    loadAll();
+  }
 
   async function createParty(e: React.FormEvent) {
     e.preventDefault();
@@ -265,6 +380,33 @@ function GamesPage() {
             </span>
           </div>
         </section>
+
+        {/* Incoming invites */}
+        {incomingInvites.length > 0 && (
+          <section className="border-2 border-secondary bg-card p-4 shadow-[4px_4px_0_0_var(--secondary)] space-y-2">
+            <h2 className="font-display text-lg uppercase text-secondary-foreground flex items-center gap-2">
+              <Mail className="size-4" /> Party Invites
+            </h2>
+            <ul className="divide-y-2 divide-dashed divide-secondary/30">
+              {incomingInvites.map((inv) => (
+                <li key={inv.id} className="py-2 flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display uppercase text-primary truncate">{inv.party_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      from {inv.from_nickname ?? "?"} · bet {formatAura(inv.aura_bet)}
+                    </p>
+                  </div>
+                  <Button size="sm" disabled={!!myPartyId} onClick={() => acceptInvite(inv.id)} className="uppercase tracking-widest">
+                    <Check className="size-3 mr-1" /> Accept
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => declineInvite(inv.id)}>
+                    <X className="size-3" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* My party */}
         {myParty ? (
@@ -394,6 +536,58 @@ function GamesPage() {
               </form>
             </DialogContent>
           </Dialog>
+        )}
+
+        {/* Looking-for-party: own toggle (when not in a party) */}
+        {!myPartyId && (
+          <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="font-display text-base uppercase text-primary">Search for a party</p>
+                <p className="text-xs text-muted-foreground">
+                  Owners will see you on the comrades-seeking list and can invite you in.
+                </p>
+              </div>
+              <Button
+                onClick={toggleLfp}
+                variant={iAmSeeking ? "outline" : "default"}
+                className="uppercase tracking-widest"
+              >
+                {iAmSeeking ? "Stop searching" : "Search"}
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {/* Seekers list — only when you own a party */}
+        {isOwner && (
+          <section className="border-2 border-primary bg-card p-4 shadow-[4px_4px_0_0_var(--primary)] space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-lg uppercase text-primary flex items-center gap-2">
+                <UserPlus className="size-4" /> Comrades Seeking a Party
+              </h2>
+              <span className="text-xs text-muted-foreground">{seekers.length}</span>
+            </div>
+            {seekers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No one is searching right now.</p>
+            ) : (
+              <ul className="divide-y-2 divide-dashed divide-primary/20">
+                {seekers.map((s) => (
+                  <li key={s.user_id} className="py-2 flex items-center gap-2">
+                    <Users className="size-3 text-muted-foreground" />
+                    <span className="font-mono flex-1 truncate">{s.nickname ?? "?"}</span>
+                    <Button
+                      size="sm"
+                      onClick={() => invitePlayer(s.user_id)}
+                      className="uppercase tracking-widest"
+                    >
+                      <Mail className="size-3 mr-1" /> Invite
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         )}
 
         {/* Open parties list */}

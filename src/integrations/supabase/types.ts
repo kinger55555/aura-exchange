@@ -241,6 +241,55 @@ export type Database = {
           },
         ]
       }
+      party_invites: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          party_id: string
+          status: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          party_id: string
+          status?: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          party_id?: string
+          status?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_invites_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_invites_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_invites_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       party_members: {
         Row: {
           id: string
@@ -272,6 +321,39 @@ export type Database = {
             foreignKeyName: "party_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_seekers: {
+        Row: {
+          created_at: string
+          game_week_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_week_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_week_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_seekers_game_week_id_fkey"
+            columns: ["game_week_id"]
+            isOneToOne: false
+            referencedRelation: "game_weeks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_seekers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -785,6 +867,7 @@ export type Database = {
       }
       _user_active_party: { Args: { p_uid: string }; Returns: string }
       abandon_party: { Args: never; Returns: undefined }
+      accept_party_invite: { Args: { p_invite_id: string }; Returns: undefined }
       act_on_report: {
         Args: {
           p_action: string
@@ -929,6 +1012,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      decline_party_invite: {
+        Args: { p_invite_id: string }
+        Returns: undefined
       }
       delete_my_account: { Args: never; Returns: undefined }
       denounce_comrade: {
@@ -1137,6 +1224,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      invite_to_party: {
+        Args: { p_party_id: string; p_user_id: string }
+        Returns: string
       }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
       issue_ban: {
@@ -1717,6 +1808,7 @@ export type Database = {
         Args: { p_game_type: string; p_party_id: string }
         Returns: undefined
       }
+      toggle_lfp: { Args: { p_on: boolean }; Returns: undefined }
       unequip_title: { Args: never; Returns: undefined }
     }
     Enums: {
