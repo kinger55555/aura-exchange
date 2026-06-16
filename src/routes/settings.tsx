@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { StaffBadge } from "@/components/StaffBadge";
+import { PushNotificationsCard } from "@/components/PushNotificationsCard";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Absolute Communism" }] }),
@@ -144,6 +145,8 @@ function SettingsPage() {
           </h1>
           <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">{role ?? "Player"}</p>
         </section>
+
+        <PushNotificationsCard />
 
         {role === "owner" && (
           <section className="border-2 border-secondary bg-card p-4 shadow-[4px_4px_0_0_var(--secondary)] space-y-3">

@@ -446,6 +446,44 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ranks: {
         Row: {
           max_aura: number
@@ -1018,6 +1056,10 @@ export type Database = {
         Returns: undefined
       }
       delete_my_account: { Args: never; Returns: undefined }
+      delete_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: undefined
+      }
       denounce_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
@@ -1290,6 +1332,15 @@ export type Database = {
       my_private_profile: { Args: never; Returns: Json }
       my_quota: { Args: never; Returns: Json }
       my_staff_salary: { Args: never; Returns: number }
+      notify_push: {
+        Args: {
+          p_body: string
+          p_title: string
+          p_url: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       open_falling_star_case: { Args: never; Returns: Json }
       open_suitcase: { Args: never; Returns: Json }
       owner_rank_up: {
@@ -1526,6 +1577,15 @@ export type Database = {
         }
       }
       run_weekly_payroll: { Args: never; Returns: undefined }
+      save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_p256dh: string
+          p_user_agent: string
+        }
+        Returns: undefined
+      }
       sell_title: { Args: { p_title_id: string }; Returns: number }
       send_aura: {
         Args: { p_amount: number; p_message?: string; p_recipient: string }
