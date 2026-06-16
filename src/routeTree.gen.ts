@@ -23,6 +23,7 @@ import { Route as BannedRouteImport } from './routes/banned'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileNicknameRouteImport } from './routes/profile.$nickname'
+import { Route as ApiPublicHooksSendPushRouteImport } from './routes/api/public/hooks/send-push'
 
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
@@ -94,6 +95,11 @@ const ProfileNicknameRoute = ProfileNicknameRouteImport.update({
   path: '/profile/$nickname',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSendPushRoute = ApiPublicHooksSendPushRouteImport.update({
+  id: '/api/public/hooks/send-push',
+  path: '/api/public/hooks/send-push',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/hooks/send-push'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/hooks/send-push'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/hooks/send-push'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
   ProfileNicknameRoute: typeof ProfileNicknameRoute
+  ApiPublicHooksSendPushRoute: typeof ApiPublicHooksSendPushRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileNicknameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/send-push': {
+      id: '/api/public/hooks/send-push'
+      path: '/api/public/hooks/send-push'
+      fullPath: '/api/public/hooks/send-push'
+      preLoaderRoute: typeof ApiPublicHooksSendPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,
   ProfileNicknameRoute: ProfileNicknameRoute,
+  ApiPublicHooksSendPushRoute: ApiPublicHooksSendPushRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
