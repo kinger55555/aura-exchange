@@ -23,6 +23,7 @@ import { Route as BannedRouteImport } from './routes/banned'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileNicknameRouteImport } from './routes/profile.$nickname'
+import { Route as ApiPublicPushPublicKeyRouteImport } from './routes/api/public/push-public-key'
 import { Route as ApiPublicHooksSendPushRouteImport } from './routes/api/public/hooks/send-push'
 
 const ShopRoute = ShopRouteImport.update({
@@ -95,6 +96,11 @@ const ProfileNicknameRoute = ProfileNicknameRouteImport.update({
   path: '/profile/$nickname',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushPublicKeyRoute = ApiPublicPushPublicKeyRouteImport.update({
+  id: '/api/public/push-public-key',
+  path: '/api/public/push-public-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksSendPushRoute = ApiPublicHooksSendPushRouteImport.update({
   id: '/api/public/hooks/send-push',
   path: '/api/public/hooks/send-push',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRoutesById {
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
+  '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
 }
 export interface FileRouteTypes {
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
   id:
     | '__root__'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shop'
     | '/profile/$nickname'
+    | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
   ProfileNicknameRoute: typeof ProfileNicknameRoute
+  ApiPublicPushPublicKeyRoute: typeof ApiPublicPushPublicKeyRoute
   ApiPublicHooksSendPushRoute: typeof ApiPublicHooksSendPushRoute
 }
 
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileNicknameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push-public-key': {
+      id: '/api/public/push-public-key'
+      path: '/api/public/push-public-key'
+      fullPath: '/api/public/push-public-key'
+      preLoaderRoute: typeof ApiPublicPushPublicKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/send-push': {
       id: '/api/public/hooks/send-push'
       path: '/api/public/hooks/send-push'
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,
   ProfileNicknameRoute: ProfileNicknameRoute,
+  ApiPublicPushPublicKeyRoute: ApiPublicPushPublicKeyRoute,
   ApiPublicHooksSendPushRoute: ApiPublicHooksSendPushRoute,
 }
 export const routeTree = rootRouteImport
