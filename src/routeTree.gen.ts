@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TradesRouteImport } from './routes/trades'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RulesRouteImport } from './routes/rules'
@@ -26,6 +27,11 @@ import { Route as ProfileNicknameRouteImport } from './routes/profile.$nickname'
 import { Route as ApiPublicPushPublicKeyRouteImport } from './routes/api/public/push-public-key'
 import { Route as ApiPublicHooksSendPushRouteImport } from './routes/api/public/hooks/send-push'
 
+const TradesRoute = TradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/trades': typeof TradesRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
   '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/trades': typeof TradesRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
   '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/trades': typeof TradesRoute
   '/profile/$nickname': typeof ProfileNicknameRoute
   '/api/public/push-public-key': typeof ApiPublicPushPublicKeyRoute
   '/api/public/hooks/send-push': typeof ApiPublicHooksSendPushRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/rules'
     | '/settings'
     | '/shop'
+    | '/trades'
     | '/profile/$nickname'
     | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/rules'
     | '/settings'
     | '/shop'
+    | '/trades'
     | '/profile/$nickname'
     | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/rules'
     | '/settings'
     | '/shop'
+    | '/trades'
     | '/profile/$nickname'
     | '/api/public/push-public-key'
     | '/api/public/hooks/send-push'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
+  TradesRoute: typeof TradesRoute
   ProfileNicknameRoute: typeof ProfileNicknameRoute
   ApiPublicPushPublicKeyRoute: typeof ApiPublicPushPublicKeyRoute
   ApiPublicHooksSendPushRoute: typeof ApiPublicHooksSendPushRoute
@@ -240,6 +253,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trades': {
+      id: '/trades'
+      path: '/trades'
+      fullPath: '/trades'
+      preLoaderRoute: typeof TradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -369,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,
+  TradesRoute: TradesRoute,
   ProfileNicknameRoute: ProfileNicknameRoute,
   ApiPublicPushPublicKeyRoute: ApiPublicPushPublicKeyRoute,
   ApiPublicHooksSendPushRoute: ApiPublicHooksSendPushRoute,

@@ -141,7 +141,7 @@ function TradesPage() {
       p_requested_aura: ra,
       p_offered_title_ids: Array.from(offerTitles),
       p_requested_title_ids: requestTitleIds,
-      p_message: message || null,
+      p_message: message || undefined,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Trade offer sent");
