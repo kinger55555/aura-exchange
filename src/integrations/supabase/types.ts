@@ -187,6 +187,47 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_listings: {
+        Row: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title_id: string
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          price: number
+          seller_id: string
+          sold_at?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title_id: string
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          price?: number
+          seller_id?: string
+          sold_at?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parties: {
         Row: {
           aura_bet: number
@@ -804,6 +845,78 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_offer_titles: {
+        Row: {
+          id: string
+          side: string
+          title_id: string
+          trade_id: string
+        }
+        Insert: {
+          id?: string
+          side: string
+          title_id: string
+          trade_id: string
+        }
+        Update: {
+          id?: string
+          side?: string
+          title_id?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_offer_titles_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_offer_titles_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_offers: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string | null
+          offered_aura: number
+          requested_aura: number
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["trade_status"]
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message?: string | null
+          offered_aura?: number
+          requested_aura?: number
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string | null
+          offered_aura?: number
+          requested_aura?: number
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_received: number
@@ -903,9 +1016,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      _trade_tax: { Args: { p_amount: number }; Returns: number }
       _user_active_party: { Args: { p_uid: string }; Returns: string }
       abandon_party: { Args: never; Returns: undefined }
       accept_party_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      accept_trade_offer: { Args: { p_trade_id: string }; Returns: undefined }
       act_on_report: {
         Args: {
           p_action: string
@@ -968,7 +1083,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      buy_listing: { Args: { p_listing_id: string }; Returns: undefined }
       buy_ticket: { Args: { p_kind: string }; Returns: undefined }
+      cancel_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      cancel_trade_offer: { Args: { p_trade_id: string }; Returns: undefined }
       claim_event_reward: { Args: never; Returns: Json }
       claim_tickets: { Args: never; Returns: Json }
       create_party:
@@ -1019,6 +1137,33 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      create_trade_offer: {
+        Args: {
+          p_message?: string
+          p_offered_aura: number
+          p_offered_title_ids: string[]
+          p_requested_aura: number
+          p_requested_title_ids: string[]
+          p_to_nickname: string
+        }
+        Returns: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string | null
+          offered_aura: number
+          requested_aura: number
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["trade_status"]
+          to_user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trade_offers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       declare_amnesty: {
         Args: { p_alts: string[] }
         Returns: {
@@ -1329,6 +1474,25 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      list_title_for_sale: {
+        Args: { p_price: number; p_title_id: string }
+        Returns: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "marketplace_listings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       my_private_profile: { Args: never; Returns: Json }
       my_quota: { Args: never; Returns: Json }
       my_staff_salary: { Args: never; Returns: number }
@@ -1462,6 +1626,7 @@ export type Database = {
       }
       purchase_title: { Args: { p_title_id: string }; Returns: undefined }
       purchase_title_gray: { Args: { p_title_id: string }; Returns: undefined }
+      reject_trade_offer: { Args: { p_trade_id: string }; Returns: undefined }
       report_comrade: {
         Args: { p_amount: number; p_reason?: string; p_recipient: string }
         Returns: {
@@ -1872,7 +2037,14 @@ export type Database = {
       unequip_title: { Args: never; Returns: undefined }
     }
     Enums: {
+      listing_status: "active" | "sold" | "cancelled"
       staff_role: "owner" | "admin" | "moderator"
+      trade_status:
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "cancelled"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2000,7 +2172,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      listing_status: ["active", "sold", "cancelled"],
       staff_role: ["owner", "admin", "moderator"],
+      trade_status: ["pending", "accepted", "rejected", "cancelled", "expired"],
     },
   },
 } as const
