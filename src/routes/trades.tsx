@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MobileNav } from "@/components/MobileNav";
 import { formatAura, tierTone } from "@/lib/rank";
-import { Store, Coins, Tag, X } from "lucide-react";
+import { Store, Coins, Tag, X, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/trades")({
   head: () => ({ meta: [{ title: "Market — Absolute Communism" }] }),
@@ -23,6 +23,7 @@ type Listing = {
   price: number;
   status: string;
   created_at: string;
+  views: number;
   titles: Title;
   profiles: { nickname: string | null };
 };
@@ -57,12 +58,22 @@ function MarketPage() {
 
   useEffect(() => { if (user) refresh(); }, [user, refresh]);
 
+  // Bump view counts for other people's listings (once per refresh)
+  useEffect(() => {
+    if (!user || listings.length === 0) return;
+    const others = listings.filter(l => l.seller_id !== user.id).map(l => l.id);
+    if (others.length === 0) return;
+    supabase.rpc("bump_listing_views", { p_listing_ids: others });
+  }, [user, listings]);
+
   if (loading || !user) return null;
   const me = user.id;
 
   // Hide titles that are already actively listed by me
   const listedTitleIds = new Set(listings.filter(l => l.seller_id === me).map(l => l.title_id));
   const listable = owned.filter(o => !listedTitleIds.has(o.title_id));
+  const myListings = listings.filter(l => l.seller_id === me);
+  const otherListings = listings.filter(l => l.seller_id !== me);
 
   async function listForSale(titleId: string) {
     const raw = priceFor[titleId];
@@ -145,16 +156,52 @@ function MarketPage() {
         </div>
 
         {/* MARKETPLACE */}
+        {/* MY LISTINGS */}
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-          Active Listings ({listings.length})
+          Your Listings ({myListings.length})
+        </h2>
+        <div className="space-y-2 mb-6">
+          {myListings.length === 0 ? (
+            <div className="text-sm text-muted-foreground italic px-2 py-3">
+              You have no active listings.
+            </div>
+          ) : (
+            myListings.map(l => (
+              <div key={l.id} className="border-2 border-secondary/40 bg-card p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className={`font-bold truncate ${tierTone(l.titles?.tier ?? "")}`}>
+                    {l.titles?.text}
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                    <span>{l.titles?.tier}</span>
+                    <span className="flex items-center gap-1" title="Comrades who saw this listing">
+                      <Eye className="size-3" /> {l.views ?? 0} {(l.views ?? 0) === 1 ? "view" : "views"}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-mono font-bold flex items-center gap-1 justify-end mb-1">
+                    <Coins className="size-4" />{formatAura(l.price)}
+                  </div>
+                  <Button size="sm" variant="outline" disabled={working} onClick={() => cancelListing(l.id)}>
+                    <X className="size-3 mr-1" />Unlist
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+          Market ({otherListings.length})
         </h2>
         <div className="space-y-2">
-          {listings.length === 0 ? (
+          {otherListings.length === 0 ? (
             <div className="text-sm text-muted-foreground italic px-2 py-3">
               Nothing on the market.
             </div>
           ) : (
-            listings.map(l => (
+            otherListings.map(l => (
               <div key={l.id} className="border-2 border-primary/30 bg-card p-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className={`font-bold truncate ${tierTone(l.titles?.tier ?? "")}`}>
@@ -168,15 +215,9 @@ function MarketPage() {
                   <div className="font-mono font-bold flex items-center gap-1 justify-end mb-1">
                     <Coins className="size-4" />{formatAura(l.price)}
                   </div>
-                  {l.seller_id === me ? (
-                    <Button size="sm" variant="outline" disabled={working} onClick={() => cancelListing(l.id)}>
-                      <X className="size-3 mr-1" />Unlist
-                    </Button>
-                  ) : (
-                    <Button size="sm" disabled={working || balance < l.price} onClick={() => buyListing(l.id)}>
-                      Buy
-                    </Button>
-                  )}
+                  <Button size="sm" disabled={working || balance < l.price} onClick={() => buyListing(l.id)}>
+                    Buy
+                  </Button>
                 </div>
               </div>
             ))
