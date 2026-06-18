@@ -538,9 +538,9 @@ function ShopPage() {
                                   <Lock className="size-3" /> {t.unlock_condition}
                                 </p>
                               )}
-                              {t.buyable && (
+                              {t.buyable && !own && (
                                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
-                                  {formatAura(t.cost ?? 0)} Aura
+                                  Find in suitcases or the Market
                                 </p>
                               )}
                             </div>
