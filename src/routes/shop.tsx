@@ -538,23 +538,14 @@ function ShopPage() {
                                   <Lock className="size-3" /> {t.unlock_condition}
                                 </p>
                               )}
-                              {t.buyable && (
+                              {t.buyable && !own && (
                                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
-                                  {formatAura(t.cost ?? 0)} Aura
+                                  Find in suitcases or the Market
                                 </p>
                               )}
                             </div>
                             {own ? (
                               <span className="text-xs uppercase tracking-widest text-primary flex items-center gap-1"><Check className="size-3" /> Owned</span>
-                            ) : t.buyable ? (
-                              <div className="flex flex-col gap-1">
-                                <Button size="sm" disabled={working || balance < (t.cost ?? 0)} onClick={() => purchaseTitle(t)}>
-                                  Buy
-                                </Button>
-                                <Button size="sm" variant="outline" disabled={working || gray < (t.cost ?? 0)} onClick={() => purchaseTitleGray(t)}>
-                                  Gray
-                                </Button>
-                              </div>
                             ) : (
                               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Locked</span>
                             )}
