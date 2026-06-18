@@ -197,6 +197,7 @@ export type Database = {
           sold_at: string | null
           status: Database["public"]["Enums"]["listing_status"]
           title_id: string
+          views: number
         }
         Insert: {
           buyer_id?: string | null
@@ -207,6 +208,7 @@ export type Database = {
           sold_at?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title_id: string
+          views?: number
         }
         Update: {
           buyer_id?: string | null
@@ -217,6 +219,7 @@ export type Database = {
           sold_at?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title_id?: string
+          views?: number
         }
         Relationships: [
           {
@@ -1051,6 +1054,10 @@ export type Database = {
       }
       amnesty_process: { Args: never; Returns: Json }
       auraguard_email_scan: { Args: never; Returns: Json }
+      bump_listing_views: {
+        Args: { p_listing_ids: string[] }
+        Returns: undefined
+      }
       burn_aura: {
         Args: { p_keep: number }
         Returns: {
@@ -1485,6 +1492,7 @@ export type Database = {
           sold_at: string | null
           status: Database["public"]["Enums"]["listing_status"]
           title_id: string
+          views: number
         }
         SetofOptions: {
           from: "*"
