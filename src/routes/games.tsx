@@ -745,11 +745,17 @@ function AssemblyLinePlay({ session, userId, playerCount, onDone }: { session: S
   const ss = String(remaining % 60).padStart(2, "0");
   const timePct = Math.min(100, ((totalSec - remaining) / totalSec) * 100);
 
-  // Reward tiers — shared pool: per-player target × player count
+  // Reward tiers — shared pool: per-player target × player count.
+  // Each +0.5 mult costs +60 clicks per player. Ladder keeps climbing past ×2.
   const TIERS = [
     { target: 180 * playerCount, mult: 1.0, label: "×1.0" },
     { target: 240 * playerCount, mult: 1.5, label: "×1.5" },
     { target: 300 * playerCount, mult: 2.0, label: "×2.0" },
+    { target: 360 * playerCount, mult: 2.5, label: "×2.5" },
+    { target: 420 * playerCount, mult: 3.0, label: "×3.0" },
+    { target: 480 * playerCount, mult: 3.5, label: "×3.5" },
+    { target: 540 * playerCount, mult: 4.0, label: "×4.0" },
+    { target: 600 * playerCount, mult: 5.0, label: "×5.0" },
   ];
   const nextTier = TIERS.find((t) => teamClicks < t.target);
   const currentMult = [...TIERS].reverse().find((t) => teamClicks >= t.target)?.label ?? "×0.5";
@@ -802,7 +808,7 @@ function AssemblyLinePlay({ session, userId, playerCount, onDone }: { session: S
       </div>
 
       {/* Reward targets */}
-      <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="grid grid-cols-4 gap-2 text-center">
         {TIERS.map((t) => {
           const reached = teamClicks >= t.target;
           return (
