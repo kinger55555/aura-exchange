@@ -58,6 +58,20 @@ function MarketPage() {
 
   useEffect(() => { if (user) refresh(); }, [user, refresh]);
 
+  // Realtime: refresh whenever any listing changes (insert / sold / cancelled)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("marketplace_listings_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "marketplace_listings" },
+        () => { refresh(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, refresh]);
+
   // Bump view counts for other people's listings (once per refresh)
   useEffect(() => {
     if (!user || listings.length === 0) return;
