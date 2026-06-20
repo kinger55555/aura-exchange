@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search, UserPlus, Mail, Check } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search, UserPlus, Mail, Check, Atom } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -475,7 +475,7 @@ function GamesPage() {
               </div>
             )}
 
-            {session?.status === "in_progress" && (
+            {session?.status === "in_progress" && session.game_type === "assembly_line" && (
               <AssemblyLinePlay
                 session={session}
                 userId={user!.id}
@@ -483,10 +483,27 @@ function GamesPage() {
                 onDone={loadAll}
               />
             )}
-            {session?.status === "completed" && session.result_data && (
+            {session?.status === "in_progress" && session.game_type === "reactor_core" && (
+              <ReactorCorePlay
+                session={session}
+                userId={user!.id}
+                members={members}
+                onDone={loadAll}
+              />
+            )}
+            {session?.status === "completed" && session.result_data && session.game_type === "assembly_line" && (
               <div className="border-2 border-primary/40 p-3 text-sm">
                 <p className="uppercase tracking-widest text-xs text-muted-foreground">Last shift</p>
                 <p>Avg {Number(session.result_data.avg).toFixed(1)} clicks · ×{session.result_data.multiplier} · +{formatAura(session.result_data.payout_per_player)} each</p>
+              </div>
+            )}
+            {session?.status === "completed" && session.result_data && session.game_type === "reactor_core" && (
+              <div className="border-2 border-primary/40 p-3 text-sm">
+                <p className="uppercase tracking-widest text-xs text-muted-foreground">Last reactor run</p>
+                <p>
+                  {session.result_data.exploded ? "💥 Core exploded after " : "🛡 Stabilised for "}
+                  {session.result_data.survived_seconds}s · ×{session.result_data.multiplier} · +{formatAura(session.result_data.payout_per_player)} each
+                </p>
               </div>
             )}
           </section>
@@ -846,6 +863,248 @@ function AssemblyLinePlay({ session, userId, playerCount, onDone }: { session: S
       </button>
       <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
         {totalSec}s shift · Team pool ({playerCount} comrades) · Your taps: {myClicks}
+      </p>
+    </div>
+  );
+}
+
+// Reactor Core: hot-potato pass. Holder's personal timer drains; pass to a comrade
+// before it hits zero. Drain speeds up every 15 seconds. Survive 90s for ×2.0.
+function ReactorCorePlay({
+  session,
+  userId,
+  members,
+  onDone,
+}: {
+  session: Session;
+  userId: string;
+  members: Member[];
+  onDone: () => void;
+}) {
+  const startAt = new Date(session.state.start_at).getTime();
+  const endAt = new Date(session.state.end_at).getTime();
+  const totalSec = Math.max(1, Math.round((endAt - startAt) / 1000));
+  const PERSONAL_START = 10; // seconds each player starts with
+  const memberIds = members.map((m) => m.user_id);
+
+  const [now, setNow] = useState(Date.now());
+  const [holderId, setHolderId] = useState<string>(session.state.first_holder ?? memberIds[0]);
+  const [holderSinceMs, setHolderSinceMs] = useState<number>(startAt);
+  // Frozen remaining-seconds per player at the moment they last released the core.
+  const [frozen, setFrozen] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {};
+    for (const id of memberIds) init[id] = PERSONAL_START;
+    return init;
+  });
+  const [phase, setPhase] = useState<"playing" | "win" | "boom">("playing");
+  const finalizedRef = useRef(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Drain multiplier ramps up every 15 seconds of game elapsed time.
+  function drainRateAt(elapsedSec: number) {
+    if (elapsedSec < 15) return 1.0;
+    if (elapsedSec < 30) return 1.4;
+    if (elapsedSec < 45) return 1.8;
+    if (elapsedSec < 60) return 2.3;
+    if (elapsedSec < 75) return 2.9;
+    return 3.6;
+  }
+
+  // Integrate drain across a span by approximating with a 0.5s step.
+  function drainedOver(fromMs: number, toMs: number) {
+    if (toMs <= fromMs) return 0;
+    let acc = 0;
+    const stepMs = 250;
+    for (let t = fromMs; t < toMs; t += stepMs) {
+      const dt = Math.min(stepMs, toMs - t) / 1000;
+      acc += drainRateAt(Math.max(0, (t - startAt) / 1000)) * dt;
+    }
+    return acc;
+  }
+
+  useEffect(() => {
+    const i = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(i);
+  }, []);
+
+  // Realtime channel for pass / explode broadcasts.
+  useEffect(() => {
+    const ch = supabase.channel(`reactor:${session.id}`, { config: { broadcast: { self: false } } });
+    ch.on("broadcast", { event: "pass" }, ({ payload }: any) => {
+      const to: string = payload?.to;
+      const from: string = payload?.from;
+      const atMs: number = Number(payload?.at_ms);
+      const fromRemaining: number = Number(payload?.from_remaining);
+      if (!to || !from || !atMs) return;
+      setFrozen((f) => ({ ...f, [from]: Math.max(0, fromRemaining) }));
+      setHolderId(to);
+      setHolderSinceMs(atMs);
+    });
+    ch.on("broadcast", { event: "explode" }, () => {
+      setPhase("boom");
+    });
+    ch.subscribe();
+    channelRef.current = ch;
+    return () => { supabase.removeChannel(ch); };
+  }, [session.id]);
+
+  // Compute holder's live remaining seconds.
+  const holderBase = frozen[holderId] ?? PERSONAL_START;
+  const holderDrained = phase === "playing" ? drainedOver(holderSinceMs, now) : 0;
+  const holderRemaining = Math.max(0, holderBase - holderDrained);
+  const elapsedSec = Math.max(0, Math.floor((now - startAt) / 1000));
+  const gameRemainingSec = Math.max(0, Math.ceil((endAt - now) / 1000));
+  const drainRate = drainRateAt(elapsedSec);
+  const isHolder = holderId === userId;
+
+  // Boom detection: holder's timer hit zero.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (holderRemaining > 0) return;
+    setPhase("boom");
+    if (isHolder && channelRef.current) {
+      channelRef.current.send({ type: "broadcast", event: "explode", payload: { at_ms: Date.now() } });
+    }
+  }, [holderRemaining, phase, isHolder]);
+
+  // Win detection: 90s elapsed without explosion.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (now < endAt) return;
+    setPhase("win");
+  }, [now, endAt, phase]);
+
+  // Finalize once on terminal state.
+  useEffect(() => {
+    if (phase === "playing" || finalizedRef.current) return;
+    finalizedRef.current = true;
+    const survived = phase === "win" ? 90 : Math.min(90, elapsedSec);
+    (async () => {
+      const { error } = await supabase.rpc("finalize_reactor", {
+        p_session_id: session.id,
+        p_survived_seconds: survived,
+      });
+      if (error && !/wrong game type|not in progress/i.test(error.message)) {
+        // someone else may have finalized first — that's fine
+      }
+      setTimeout(onDone, 400);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  function passTo(targetId: string) {
+    if (!isHolder || phase !== "playing") return;
+    if (targetId === userId) return;
+    const atMs = Date.now();
+    const remaining = holderRemaining;
+    setFrozen((f) => ({ ...f, [userId]: remaining }));
+    setHolderId(targetId);
+    setHolderSinceMs(atMs);
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "pass",
+      payload: { from: userId, to: targetId, at_ms: atMs, from_remaining: remaining },
+    });
+  }
+
+  const holderNick = members.find((m) => m.user_id === holderId)?.nickname ?? "?";
+  const timePct = Math.min(100, (elapsedSec / totalSec) * 100);
+  const holderPct = Math.max(0, Math.min(100, (holderRemaining / PERSONAL_START) * 100));
+
+  return (
+    <div className="border-2 border-primary p-4 mt-3 space-y-3">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Reactor stable for</p>
+          <p className={`font-display text-4xl tabular-nums ${gameRemainingSec <= 10 ? "text-secondary animate-pulse" : "text-primary"}`}>
+            {String(Math.floor(gameRemainingSec / 60)).padStart(2, "0")}:
+            {String(gameRemainingSec % 60).padStart(2, "0")}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Drain</p>
+          <p className="font-display text-2xl text-destructive">×{drainRate.toFixed(1)}</p>
+        </div>
+      </div>
+
+      <div className="h-1.5 bg-primary/10 border border-primary/30">
+        <div className="h-full bg-primary transition-all" style={{ width: `${timePct}%` }} />
+      </div>
+
+      {/* Holder display */}
+      <div className={`border-4 p-4 text-center ${isHolder ? "border-destructive bg-destructive/10 animate-pulse" : "border-secondary bg-secondary/10"}`}>
+        <Atom className={`size-12 mx-auto ${isHolder ? "text-destructive" : "text-secondary"}`} />
+        <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">
+          {isHolder ? "YOU hold the core" : "Held by"}
+        </p>
+        <p className="font-display text-2xl uppercase text-primary">{isHolder ? "Pass it NOW" : holderNick}</p>
+        <div className="h-2 mt-2 bg-primary/10 border border-primary/30">
+          <div
+            className={`h-full transition-all ${holderPct < 30 ? "bg-destructive" : holderPct < 60 ? "bg-secondary" : "bg-primary"}`}
+            style={{ width: `${holderPct}%` }}
+          />
+        </div>
+        <p className="text-xs font-mono tabular-nums mt-1 text-muted-foreground">
+          {holderRemaining.toFixed(1)}s left
+        </p>
+      </div>
+
+      {/* Personal timers — frozen for non-holders, live for holder */}
+      <ul className="grid grid-cols-2 gap-2 text-sm">
+        {members.map((m) => {
+          const isThisHolder = m.user_id === holderId;
+          const value = isThisHolder
+            ? holderRemaining
+            : (frozen[m.user_id] ?? PERSONAL_START);
+          const pct = Math.max(0, Math.min(100, (value / PERSONAL_START) * 100));
+          const canTarget = isHolder && phase === "playing" && m.user_id !== userId;
+          return (
+            <li key={m.user_id}>
+              <button
+                type="button"
+                onClick={() => canTarget && passTo(m.user_id)}
+                disabled={!canTarget}
+                className={`w-full text-left px-2 py-2 border-2 ${
+                  isThisHolder
+                    ? "border-destructive bg-destructive/10"
+                    : canTarget
+                      ? "border-secondary bg-secondary/10 hover:bg-secondary/30 active:bg-secondary/40"
+                      : "border-primary/30 bg-card"
+                } ${canTarget ? "cursor-pointer" : "cursor-default"}`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-mono truncate flex items-center gap-1">
+                    <Users className="size-3 text-muted-foreground" />
+                    {m.nickname ?? "?"}
+                    {m.user_id === userId && <span className="text-xs text-muted-foreground">(you)</span>}
+                  </span>
+                  <span className={`text-xs font-mono tabular-nums ${pct < 30 ? "text-destructive" : "text-muted-foreground"}`}>
+                    {value.toFixed(1)}s
+                  </span>
+                </div>
+                <div className="h-1 mt-1 bg-primary/10 border border-primary/30">
+                  <div
+                    className={`h-full ${pct < 30 ? "bg-destructive" : pct < 60 ? "bg-secondary" : "bg-primary"}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                {canTarget && (
+                  <p className="text-[10px] uppercase tracking-widest text-secondary mt-1">Tap to pass</p>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {phase === "boom" && (
+        <p className="text-center font-display text-2xl uppercase text-destructive">💥 Core exploded</p>
+      )}
+      {phase === "win" && (
+        <p className="text-center font-display text-2xl uppercase text-secondary">🛡 Reactor stabilised!</p>
+      )}
+      <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">
+        Payout · 30s ×0.5 · 60s ×1.0 · 90s ×2.0
       </p>
     </div>
   );
