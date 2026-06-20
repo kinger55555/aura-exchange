@@ -1273,6 +1273,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      finalize_reactor: {
+        Args: { p_session_id: string; p_survived_seconds: number }
+        Returns: Json
+      }
       fire_staff: {
         Args: {
           p_role: Database["public"]["Enums"]["staff_role"]
