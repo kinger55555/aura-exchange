@@ -477,10 +477,10 @@ function GamesPage() {
                     <Sparkles className="size-4 mr-1" /> Start with Special (any squad size)
                   </Button>
                 )}
-                {tickets.special > 0 && (
+                {isOwner && session?.status !== "in_progress" && (
                   <div className="w-full pt-2 border-t-2 border-dashed border-secondary/30">
                     <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
-                      <Sparkles className="size-3 inline mr-1" /> Swap game (uses 1 special ticket)
+                      Swap game
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" onClick={() => swapGame("assembly_line")}>Assembly Line</Button>
