@@ -1975,25 +1975,45 @@ export type Database = {
         }
       }
       staff_reverse_transfer: { Args: { p_tx_id: string }; Returns: undefined }
-      start_game_session: {
-        Args: { p_party_id: string }
-        Returns: {
-          aura_quota: number
-          created_at: string
-          game_type: string
-          id: string
-          party_id: string
-          result_data: Json | null
-          state: Json
-          status: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "game_sessions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      start_game_session:
+        | {
+            Args: { p_party_id: string }
+            Returns: {
+              aura_quota: number
+              created_at: string
+              game_type: string
+              id: string
+              party_id: string
+              result_data: Json | null
+              state: Json
+              status: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "game_sessions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { p_party_id: string; p_use_special?: boolean }
+            Returns: {
+              aura_quota: number
+              created_at: string
+              game_type: string
+              id: string
+              party_id: string
+              result_data: Json | null
+              state: Json
+              status: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "game_sessions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       submit_assembly_clicks: {
         Args: { p_clicks: number; p_session_id: string }
         Returns: {
