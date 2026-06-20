@@ -12,7 +12,7 @@ import {
 import { MobileNav } from "@/components/MobileNav";
 import { IdeaButton } from "@/components/IdeaButton";
 import { formatAura } from "@/lib/rank";
-import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search, UserPlus, Mail, Check } from "lucide-react";
+import { Ticket, Sparkles, Users, Lock, Trash2, LogOut, Play, Zap, X, UserX, Search, UserPlus, Mail, Check, Atom } from "lucide-react";
 
 export const Route = createFileRoute("/games")({
   head: () => ({ meta: [{ title: "Games — Absolute Communism" }] }),
@@ -475,7 +475,7 @@ function GamesPage() {
               </div>
             )}
 
-            {session?.status === "in_progress" && (
+            {session?.status === "in_progress" && session.game_type === "assembly_line" && (
               <AssemblyLinePlay
                 session={session}
                 userId={user!.id}
@@ -483,10 +483,27 @@ function GamesPage() {
                 onDone={loadAll}
               />
             )}
-            {session?.status === "completed" && session.result_data && (
+            {session?.status === "in_progress" && session.game_type === "reactor_core" && (
+              <ReactorCorePlay
+                session={session}
+                userId={user!.id}
+                members={members}
+                onDone={loadAll}
+              />
+            )}
+            {session?.status === "completed" && session.result_data && session.game_type === "assembly_line" && (
               <div className="border-2 border-primary/40 p-3 text-sm">
                 <p className="uppercase tracking-widest text-xs text-muted-foreground">Last shift</p>
                 <p>Avg {Number(session.result_data.avg).toFixed(1)} clicks · ×{session.result_data.multiplier} · +{formatAura(session.result_data.payout_per_player)} each</p>
+              </div>
+            )}
+            {session?.status === "completed" && session.result_data && session.game_type === "reactor_core" && (
+              <div className="border-2 border-primary/40 p-3 text-sm">
+                <p className="uppercase tracking-widest text-xs text-muted-foreground">Last reactor run</p>
+                <p>
+                  {session.result_data.exploded ? "💥 Core exploded after " : "🛡 Stabilised for "}
+                  {session.result_data.survived_seconds}s · ×{session.result_data.multiplier} · +{formatAura(session.result_data.payout_per_player)} each
+                </p>
               </div>
             )}
           </section>
