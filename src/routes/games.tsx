@@ -341,11 +341,14 @@ function GamesPage() {
     loadAll();
   }
 
-  async function startSession() {
+  async function startSession(useSpecial = false) {
     if (!myParty) return;
-    const { error } = await supabase.rpc("start_game_session", { p_party_id: myParty.id });
+    const { error } = await supabase.rpc("start_game_session", {
+      p_party_id: myParty.id,
+      p_use_special: useSpecial,
+    });
     if (error) return toast.error(error.message);
-    toast.success("Shift begins!");
+    toast.success(useSpecial ? "Special shift begins!" : "Shift begins!");
     loadAll();
   }
 
@@ -462,15 +465,29 @@ function GamesPage() {
 
             {isOwner && session?.status !== "in_progress" && (
               <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-dashed border-primary/20">
-                <Button onClick={startSession} className="bg-primary text-primary-foreground uppercase tracking-widest">
+                <Button onClick={() => startSession(false)} className="bg-primary text-primary-foreground uppercase tracking-widest">
                   <Play className="size-4 mr-1" /> Start shift (1 ticket)
                 </Button>
                 {tickets.special > 0 && (
-                  <>
-                    <Button variant="outline" size="sm" onClick={() => swapGame("assembly_line")}>Use special → Assembly Line</Button>
-                    <Button variant="outline" size="sm" onClick={() => swapGame("reactor_core")}>Reactor Core</Button>
-                    <Button variant="outline" size="sm" onClick={() => swapGame("synchronized_march")}>Synchronized March</Button>
-                  </>
+                  <Button
+                    onClick={() => startSession(true)}
+                    variant="outline"
+                    className="uppercase tracking-widest border-secondary text-secondary-foreground bg-secondary/10"
+                  >
+                    <Sparkles className="size-4 mr-1" /> Start with Special (any squad size)
+                  </Button>
+                )}
+                {tickets.special > 0 && (
+                  <div className="w-full pt-2 border-t-2 border-dashed border-secondary/30">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                      <Sparkles className="size-3 inline mr-1" /> Swap game (uses 1 special ticket)
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" onClick={() => swapGame("assembly_line")}>Assembly Line</Button>
+                      <Button variant="outline" size="sm" onClick={() => swapGame("reactor_core")}>Reactor Core</Button>
+                      <Button variant="outline" size="sm" onClick={() => swapGame("synchronized_march")}>Synchronized March</Button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
