@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -36,6 +36,7 @@ function MarketPage() {
   const [busy, setBusy] = useState(true);
   const [priceFor, setPriceFor] = useState<Record<string, string>>({});
   const [working, setWorking] = useState(false);
+  const bumpedRef = useRef<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -66,18 +67,36 @@ function MarketPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "marketplace_listings" },
-        () => { refresh(); },
+        (payload: any) => {
+          // Ignore view-count-only updates to avoid an infinite refresh loop
+          // caused by bump_listing_views() updating the same table we subscribe to.
+          if (payload.eventType === "UPDATE") {
+            const oldRow = payload.old ?? {};
+            const newRow = payload.new ?? {};
+            const keys = new Set([...Object.keys(oldRow), ...Object.keys(newRow)]);
+            let onlyViews = true;
+            for (const k of keys) {
+              if (k === "views") continue;
+              if (oldRow[k] !== newRow[k]) { onlyViews = false; break; }
+            }
+            if (onlyViews) return;
+          }
+          refresh();
+        },
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, refresh]);
 
-  // Bump view counts for other people's listings (once per refresh)
+  // Bump view counts for other people's listings (once per listing id per session)
   useEffect(() => {
     if (!user || listings.length === 0) return;
-    const others = listings.filter(l => l.seller_id !== user.id).map(l => l.id);
-    if (others.length === 0) return;
-    supabase.rpc("bump_listing_views", { p_listing_ids: others });
+    const fresh = listings
+      .filter(l => l.seller_id !== user.id && !bumpedRef.current.has(l.id))
+      .map(l => l.id);
+    if (fresh.length === 0) return;
+    fresh.forEach(id => bumpedRef.current.add(id));
+    supabase.rpc("bump_listing_views", { p_listing_ids: fresh });
   }, [user, listings]);
 
   if (loading || !user) return null;
